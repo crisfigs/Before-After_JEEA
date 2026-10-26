@@ -1,0 +1,63 @@
+{{ block title }}
+   Video Order Result
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .mpl-table thead th {
+        background-color: #008CBA;
+        color: white;
+    }
+    .mpl-table input[type="radio"] {
+        accent-color: #008CBA;
+        transform: scale(1.4);
+        margin: 0 4px;
+    }
+    .mpl-table input.static-radio,
+    .mpl-table td label {
+        pointer-events: none;   /* the row is only shown, it cannot be changed */
+        cursor: default;
+    }
+    .mpl-table tr.highlight td {
+        background-color: #FFF3CD;
+        font-weight: bold;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+<div class="card"><div class="card-body">
+
+    <p>The computer has randomly selected <b>decision {{ player.paid_row }}</b>.
+    In that decision you chose:</p>
+
+    <table class="table mpl-table">
+        <thead>
+            <tr>
+                <th>Decision</th>
+                <th>Option 1</th>
+                <th style="text-align:center;">Your choice</th>
+                <th>Option 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="highlight">
+                <td>{{ selected_row.number }}</td>
+                <td>{{ selected_row.option_1 }}</td>
+                <td style="text-align:center; white-space:nowrap;">
+                    <label><input type="radio" class="static-radio" tabindex="-1" {{ if selected_row.opt1_checked }}checked{{ endif }}> 1</label>
+                    &nbsp;&nbsp;
+                    <label><input type="radio" class="static-radio" tabindex="-1" {{ if selected_row.opt2_checked }}checked{{ endif }}> 2</label>
+                </td>
+                <td>{{ selected_row.option_2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Thus, you will watch {{ order }}, and you receive a bonus of <b>{{ bonus_text }}</b>.</p>
+
+</div></div>
+
+<br>
+<div style="text-align:center">{{ next_button }}</div>
+{{ endblock }}

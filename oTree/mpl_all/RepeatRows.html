@@ -1,0 +1,36 @@
+{{ block title }}Part 3: Final Survey{{ endblock }}
+{{ block content }}
+
+<div class="card">
+    <div class="card-body">
+        <p>Below are two decisions about the order of the videos. Please make each decision again.</p>
+
+        <table class="table table-striped mpl-table">
+            <thead>
+            <tr>
+                <th>Option 1</th>
+                <th style="text-align:center;">Your choice</th>
+                <th>Option 2</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{ for row in rep_rows }}
+            <tr>
+                <td>{{ row.option_1 }}</td>
+                <td style="text-align:center; white-space:nowrap;">
+                    <label><input type="radio" name="{{ row.field }}" value="1" required> 1</label>
+                    &nbsp;&nbsp;
+                    <label><input type="radio" name="{{ row.field }}" value="2"> 2</label>
+                </td>
+                <td>{{ row.option_2 }}</td>
+            </tr>
+            {{ endfor }}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<br>
+<div style="display:flex; justify-content:flex-end;">{{ next_button }}</div>
+
+{{ endblock }}

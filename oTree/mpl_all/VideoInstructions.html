@@ -1,0 +1,99 @@
+{{ block title }}
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    /* ---- timelines ---- */
+    .timeline {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 15px 0;
+    }
+    .timeline-label {
+        width: 210px;
+    }
+    .timeline-label .opt {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    /* video names in the list, coloured like the timeline boxes */
+    .tag {
+        padding: 1px 7px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .step {
+        padding: 10px 14px;
+        border-radius: 6px;
+        text-align: center;
+        min-width: 150px;
+    }
+    .step-alt     { background-color: #E3E8EE; border: 1px solid #9AA5B1; }
+    .step-charity { background-color: #D6EAF3; border: 1px solid #008CBA; }
+    .step-choice  { background-color: #ffffff; border: 1px dashed #6c757d; font-style: italic; }
+    .arrow { font-size: 20px; color: #6c757d; }
+
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .nav-buttons > *, .nav-buttons button {
+        margin: 0 !important;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<h2>Part 2: Instructions 2/2</h2>
+
+<div class="card"><div class="card-body">
+
+    <p>Apart from making your choice between <b>Option A</b> (you: £5, charity: £0) and <b>Option B</b>
+    (you: £1, charity: £8), in this part you will also <b>watch two short videos</b>, and you need to
+    <b>decide in which order</b> you watch them. Below you find a description of the two videos and the two possible orders.</p>
+
+    <p><b>The two videos you will watch are:</b></p>
+
+    <ul>
+        <li><span class="tag step-charity">Charity Video</span> part of a campaign by "Save the Children", it shows the struggles of a nine-year-old girl
+        when her city becomes a warzone. As the political conflict escalates, the girl and her family experience
+        increasingly traumatic hardships and perils.</li>
+        <li><span class="tag step-alt">Alternative Video</span> a video of similar length that is unrelated to the charity.</li>
+    </ul>
+
+    <p>You will make your decision between Option A (you: £5, charity: £0) and Option B (you: £1, charity: £8)
+    in between the two videos.</p>
+
+    <p style="margin-top: 2rem;"><b>The two possible orders in which you can choose to watch them are:</b></p>
+
+    <div class="timeline">
+        <div class="timeline-label"><span class="opt">Option 1</span><br>{{ C.LABEL_1 }}</div>
+        <div class="step step-alt">Alternative Video</div>
+        <span class="arrow">&rarr;</span>
+        <div class="step step-choice">Your choice: A or B</div>
+        <span class="arrow">&rarr;</span>
+        <div class="step step-charity">Charity Video</div>
+    </div>
+
+    <div class="timeline">
+        <div class="timeline-label"><span class="opt">Option 2</span><br>{{ C.LABEL_2 }}</div>
+        <div class="step step-charity">Charity Video</div>
+        <span class="arrow">&rarr;</span>
+        <div class="step step-choice">Your choice: A or B</div>
+        <span class="arrow">&rarr;</span>
+        <div class="step step-alt">Alternative Video</div>
+    </div>
+
+</div></div>
+
+<br>
+<div class="nav-buttons">
+    <span></span>
+    {{ next_button }}
+</div>
+
+{{ endblock }}

@@ -1,0 +1,83 @@
+{{ block title }}
+    Your choices
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .mpl-table thead th {
+        background-color: #008CBA;
+        color: white;
+    }
+    .mpl-table input[type="radio"] {
+        accent-color: #008CBA;
+        transform: scale(1.4);
+        margin: 0 4px;
+        cursor: pointer;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<div class="alert alert-success">You have answered the comprehension questions correctly.</div>
+
+<div class="card"><div class="card-body">
+
+    <p>Please make your decisions now by selecting your preferred option in each row of the table.</p>
+
+    <table class="table table-striped mpl-table">
+        <thead>
+            <tr>
+                <th>Decision</th>
+                <th>Option 1</th>
+                <th style="text-align:center;">Your choice</th>
+                <th>Option 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ for row in rows }}
+            <tr>
+                <td>{{ row.number }}</td>
+                <td>{{ row.option_1 }}</td>
+                <td style="text-align:center; white-space:nowrap;">
+                    <label><input type="radio" name="{{ row.field }}" value="1" data-row="{{ row.number }}" required> 1</label>
+                    &nbsp;&nbsp;
+                    <label><input type="radio" name="{{ row.field }}" value="2" data-row="{{ row.number }}" required> 2</label>
+                </td>
+                <td>{{ row.option_2 }}</td>
+            </tr>
+            {{ endfor }}
+        </tbody>
+    </table>
+
+    <p><i>You can switch from Option 1 to Option 2 at most once. When you choose Option 1 in a row, all rows above are set to Option 1;
+    when you choose Option 2 in a row, all rows below are set to Option 2.</i></p>
+
+</div></div>
+
+<br>
+<div style="text-align:center">{{ next_button }}</div>
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    // Force single switching:
+    // choosing Option 1 in row k sets Option 1 in all rows above; choosing Option 2 sets Option 2 in all rows below.
+    var numRows = {{ C.NUM_ROWS }};
+
+    document.addEventListener('change', function (e) {
+        if (e.target.type !== 'radio' || !e.target.dataset.row) return;
+        var k = parseInt(e.target.dataset.row);
+
+        if (e.target.value === '1') {
+            for (var i = 1; i <= k; i++) {
+                document.querySelector('input[name="choice_' + i + '"][value="1"]').checked = true;
+            }
+        } else {
+            for (var i = k; i <= numRows; i++) {
+                document.querySelector('input[name="choice_' + i + '"][value="2"]').checked = true;
+            }
+        }
+    });
+</script>
+{{ endblock }}

@@ -1,0 +1,71 @@
+.slider-q {
+    margin-bottom: 1.5rem;
+}
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 640px;
+}
+.slider-row .end {
+    font-size: 0.875em;
+    color: #6c757d;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.2;
+}
+.survey-slider {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: #dee2e6;      /* plain grey track: no fill that would hint at a default */
+    border-radius: 3px;
+    outline-offset: 6px;
+}
+.survey-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #008CBA;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #008CBA;
+}
+.survey-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #008CBA;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #008CBA;
+}
+.survey-slider::-moz-range-track { background: #dee2e6; height: 6px; border-radius: 3px; }
+/* no knob until the participant clicks on the scale, so there is no default answer */
+.survey-slider.untouched::-webkit-slider-thumb { opacity: 0; }
+.survey-slider.untouched::-moz-range-thumb { opacity: 0; }
+.slider-value {
+    font-size: 0.875em;
+    color: #6c757d;
+    margin-top: 4px;
+    max-width: 640px;
+    text-align: center;
+}
+.slider-value.answered {
+    color: #212529;
+    font-weight: bold;
+}
+.slider-missing {
+    color: #dc3545;
+    font-size: 0.875em;
+    display: none;
+    max-width: 640px;
+    text-align: center;
+}
+.next-right {
+    display: flex;
+    justify-content: flex-end;
+}

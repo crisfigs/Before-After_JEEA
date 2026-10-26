@@ -1,0 +1,21 @@
+{{ block title }}Part 3: Final Survey - Your choices{{ endblock }}
+{{ block content }}
+
+<div class="card">
+    <div class="card-body">
+        <p><b>1.</b> You watched the <b>{{ first }}</b> first and then chose Option {{ player.task1 }}.
+        Suppose the order had been reversed: you would first have watched the <b>{{ second }}</b>, and then
+        made your choice between Option A and Option B. Which option do you think you would have chosen then?</p>
+        {{ formfield 'cf_choice' }}
+        <br>
+
+        <p><b>2.</b> In the decision table, when neither order came with a bonus, you chose to watch the
+        <b>{{ pref_first }}</b> first. Why did you prefer this order?</p>
+        {{ formfield 'reason_order' }}
+    </div>
+</div>
+
+<br>
+<div style="display:flex; justify-content:flex-end;">{{ next_button }}</div>
+
+{{ endblock }}

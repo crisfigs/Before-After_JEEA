@@ -1,0 +1,57 @@
+{{ block title }}
+Part 1: Results
+{{ endblock }}
+{% block styles  %}
+<style>
+
+.center1 {
+  text-align: center;
+}
+</style>
+{% endblock %}
+{{ block content }}
+<div class="card" ><div class="card-body">
+<p>
+    You have tried {{ player.num_trials }} puzzles, successfully solved {{ player.num_correct }},
+    and failed {{ player.num_failed }}.
+</p>
+
+
+
+        {{ if player.num_correct >= 8 }}
+        <div class="alert alert-secondary" >
+        <b> You have earned &pound5! </b>
+          <br>
+            Please click "Next" to proceed.
+        </div>
+     </div> </div>
+
+<br>
+<div class="center1">{% next_button %}</div>
+
+<br>
+         {{ elif player.num_correct < 8 }}<div class="alert alert-secondary" >
+        <b>You have earned &pound0... </b>
+      <br>
+            You cannot continue with this survey.
+        </div>
+ </div> </div>
+
+<br>
+<button type="button" class="btn btn-primary btn-right btn-lg" onclick="errorfct()" > Back to Prolific </button>
+        {{ endif }}
+
+
+{{ endblock }}
+
+{% block scripts%}
+<script>
+
+        let errorlink = js_vars.errorlink;
+        function errorfct() {
+            console.log("clicking the button")
+            window.location.href = errorlink;
+        }
+
+</script>
+{% endblock %}

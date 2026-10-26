@@ -1,0 +1,53 @@
+{{ block title }}
+    Payment
+{{ endblock }}
+
+{{ block content }}
+
+<div class="card"><div class="card-body">
+
+    <!-- 1. Option A / Option B (paid with a 1 in 5 chance) -->
+    {{ if player.payment_number == 1 }}
+        <p>You have been selected for payment of your choice between Option A and Option B.
+        {{ if player.task1 == "A" }}
+            You chose Option A, thus you get <b>{{ payment_text }}</b> and Save the Children will get &pound;0.
+        {{ else }}
+            You chose Option B, thus you get <b>{{ payment_text }}</b> and Save the Children will get &pound;8.
+        {{ endif }}
+        </p>
+    {{ else }}
+        <p>You have not been selected for payment of your choice between Option A and Option B.</p>
+    {{ endif }}
+
+    <!-- 2. Bonus from the selected decision of the decision table (paid in any case) -->
+    {{ if has_bonus }}
+        <p>From your decisions about the order of the videos (decision {{ player.paid_row }}), you receive a bonus of
+        <b>{{ bonus_text }}</b>.</p>
+    {{ else }}
+        <p>In the decision about the order of the videos that was selected (decision {{ player.paid_row }}),
+        there was no bonus.</p>
+    {{ endif }}
+
+    <p>In total, you receive <b>{{ total_text }}</b> in addition to your participation fee.</p>
+
+    <!-- 3. Guessing bonus (computed after the study) -->
+    <p>In addition, you might still earn the bonus for your guesses about other participants: we will check whether
+    your guesses were within &plusmn;{{ C.BELIEF_TOL }} of the actually observed proportions and award
+    {{ belief_pence }} pence for each accurate guess after everybody has completed the study.</p>
+
+</div></div>
+
+<br>
+<div style="text-align:center">
+    <button type="button" class="btn btn-primary btn-lg" onclick="completed()">Back to Prolific</button>
+</div>
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    function completed() {
+        window.location.href = js_vars.completionlink;
+    }
+</script>
+{{ endblock }}

@@ -1,0 +1,52 @@
+{{ block title }}
+   Video Visualization Attention Check
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .video-block + .video-block {
+        margin-top: 1.5rem;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<div class="card"><div class="card-body">
+    <p>Please indicate whether each statement is true or false.</p>
+
+    {{ if charity_first }}
+        <!-- Charity Video was watched first -->
+        <div class="video-block">
+            <p><b>In the Charity Video, there was...</b></p>
+            {{ formfield 'controlq1' }}
+            {{ formfield 'controlq2' }}
+            {{ formfield 'controlq3' }}
+        </div>
+        <div class="video-block">
+            <p><b>In the Alternative Video, there was...</b></p>
+            {{ formfield 'controlq_presenter' }}
+            {{ formfield 'controlq_drawing' }}
+            {{ formfield 'controlq_woman' }}
+        </div>
+    {{ else }}
+        <!-- Alternative Video was watched first -->
+        <div class="video-block">
+            <p><b>In the Alternative Video, there was...</b></p>
+            {{ formfield 'controlq_presenter' }}
+            {{ formfield 'controlq_drawing' }}
+            {{ formfield 'controlq_woman' }}
+        </div>
+        <div class="video-block">
+            <p><b>In the Charity Video, there was...</b></p>
+            {{ formfield 'controlq1' }}
+            {{ formfield 'controlq2' }}
+            {{ formfield 'controlq3' }}
+        </div>
+    {{ endif }}
+</div></div>
+
+<br>
+<div style="text-align:center">{{ next_button }}</div>
+
+{{ endblock }}
