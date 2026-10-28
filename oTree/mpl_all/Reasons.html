@@ -9,9 +9,15 @@
         {{ formfield 'cf_choice' }}
         <br>
 
-        <p><b>2.</b> In the decision table, when neither order came with a bonus, you chose to watch the
-        <b>{{ pref_first }}</b> first. Why did you prefer this order?</p>
+     {{ if pref_first }}
+        <p><b>2.</b> After filling in the decision table, you said you would prefer to watch the
+        <b>{{ pref_first }}</b> first. Why do you prefer this order?</p>
+        {{ else }}
+        <p><b>2.</b> After filling in the decision table, you said you had no preference about the order
+        of the two videos. Why do you not mind which video you watch first?</p>
+        {{ endif }}
         {{ formfield 'reason_order' }}
+
     </div>
 </div>
 

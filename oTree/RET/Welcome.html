@@ -3,9 +3,11 @@
 
 {{block styles }}
 <style>
-.center {
-  text-align: center;
-}
+
+        .center {
+        display: grid;
+        place-items: center;
+    }
 </style>
 {{ endblock }}
 
@@ -45,16 +47,41 @@
     <input required type="checkbox"   id="consent" name="consent" autocomplete="off">
   <br>
  <br>
+    <div class="alert alert-warning" role="alert">
+    <strong>Quality Control Notice</strong>: Please complete this survey yourself, without the help of AI tools.
+    We use several measures, including the reCAPTCHA below, to make sure all responses come from human participants. Submissions with clear evidence of AI use may be rejected without payment. </p>
+</div>
+
+<br>
+
+<div class="center">
+    <div class="g-recaptcha" data-sitekey="{{ RECAPTCHA_SITE_KEY }}" data-callback="onCaptchaSolved"></div>
+<br>
+</div>
+      <br>
 
 
     <p>If you have questions, you can contact the researcher</a>. Press "Next" to continue. </p>
 
 
-</div>
-</div>
-      <br>
-<div class="center">{% next_button %}</div>
-{% endblock %}
 
+
+
+
+</div>
+</div>
+<!-- reCAPTCHA widget -->
+<div class="center">{% next_button %}</div>
+
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+    // Sends the token to live_method, which verifies it and sets player.is_human = True
+    function onCaptchaSolved(token) {
+        liveSend({response_token: token});
+    }
+</script>
+
+{% endblock %}
 
 

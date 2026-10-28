@@ -6,7 +6,8 @@ Page order: DInstructions (Part 2 instructions 1/2: options A/B, 2/2: videos and
 -> Beliefs -> TimingInstructions (Instructions 2/2 + comprehension) -> TimingDecision_MPL -> WTP -> Results.
 
 Price list for video order (oTree 5).
-11 rows: Option 1 = AltEmot (+ bonus in rows 1-5), Option 2 = EmotAlt (+ bonus in rows 7-11).
+11 rows: Option 1 (+ bonus in rows 1-5), Option 2 (+ bonus in rows 7-11).
+Which order is Option 1 is randomized per participant (mpl_option1 = 'AltEmot' or 'EmotAlt').
 Row 6 is the zero-bonus row. One row is drawn and implemented:
 rows 1 and 11 each with prob 27.5%, rows 2-10 share the remaining 45% equally (5% each).
 Single switching (1 -> 2) is enforced in the browser and checked on the server.
@@ -25,11 +26,12 @@ class C(BaseConstants):
     ALT_VIDEO = "https://www.dropbox.com/s/iebfy6fzuewtk34/grass.mp4?raw=1"
 
 
-    # Labels shown to participants. Choices are stored as 1 (Option 1 = 'AltEmot') and 2 (Option 2 = 'EmotAlt').
-    LABEL_1 = 'Alternative video first'
-    LABEL_2 = 'Charity video first'
-    ORDER_1 = 'the Alternative Video first and the Charity Video after your choice between Option A and Option B'
-    ORDER_2 = 'the Charity Video first and the Alternative Video after your choice between Option A and Option B'
+    # Labels shown to participants.
+    LABEL_ALT = 'Alternative video first'
+    LABEL_CHARITY = 'Charity video first'
+    ORDER_ALT = 'the Alternative Video first and the Charity Video after your choice between Option A and Option B'
+    ORDER_CHARITY = 'the Charity Video first and the Alternative Video after your choice between Option A and Option B'
+
 
     # Bonus in £ for each row (row 1 first)
     BONUS_1 = [1.00, 0.70, 0.50, 0.30, 0.10, 0, 0, 0, 0, 0, 0]
@@ -49,10 +51,8 @@ class C(BaseConstants):
     COMP1_ROW = 3       # question 1: Option 1 chosen, bonus £0.50
     COMP2_ROW = 5       # question 2: Option 2 chosen, no bonus (the £0.10 belongs to Option 1)
 
-    # Exit survey: two rows of the price list repeated, to check the reliability of the switching point
-    # Repeated price-list rows (C.REP_ROWS), stored as 1 = Option 1, 2 = Option 2
-    REP_ROWS = [4, 8]  # repeated rows: Alternative first + £0.30, and Charity first + £0.30
-    ZERO_ROW = 6  # row where neither order comes with a bonus (used on the Reasons page)
+
+
 
 # Comprehension question texts (built from the constants, so they update if you change them)
 def money(x):
@@ -76,12 +76,11 @@ COMP1_BONUS = money(C.BONUS_1[C.COMP1_ROW - 1])
 COMP1_LABEL = (f"Suppose the computer randomly selects decision {C.COMP1_ROW}. "
                f"What happens for this person?")
 COMP1_CHOICES = [
-    [1, f"{CHARITY_FIRST}; bonus {COMP1_BONUS}"],
+    [1, f"{CHARITY_FIRST}; bonus {COMP1_BONUS}"],# correct if mpl_option1 = 'EmotAlt'.
     [2, f"{ALT_FIRST}; bonus £0.00"],
-    [3, f"{ALT_FIRST}; bonus {COMP1_BONUS}"],      # correct
+    [3, f"{ALT_FIRST}; bonus {COMP1_BONUS}"],     # correct if mpl_option1 = 'AltEmot'
     [4, f"{CHARITY_FIRST}; bonus £0.00"],
 ]
-COMP1_CORRECT = 3
 
 # Question 2: decision 5 -> Option 2 was chosen; the £0.10 in that row belongs to Option 1, so no bonus
 COMP2_TRAP = money(C.BONUS_1[C.COMP2_ROW - 1])
@@ -90,16 +89,24 @@ COMP2_LABEL = (f"Suppose instead that the computer randomly selects decision {C.
 COMP2_CHOICES = [
     [1, f"{CHARITY_FIRST}; bonus {COMP2_TRAP}"],
     [2, f"{ALT_FIRST}; bonus {COMP2_TRAP}"],
-    [3, f"{ALT_FIRST}; bonus £0.00"],
-    [4, f"{CHARITY_FIRST}; bonus £0.00"],          # correct
+    [3, f"{ALT_FIRST}; bonus £0.00"],# correct if mpl_option1 = 'EmotAlt'
+    [4, f"{CHARITY_FIRST}; bonus £0.00"],          # correct if mpl_option1 = 'AltEmot'
 ]
-COMP2_CORRECT = 4
+
+
+def comp1_correct(player):
+    return 3 if alt_is_opt1(player) else 1
+
+
+def comp2_correct(player):
+    return 4 if alt_is_opt1(player) else 3
 
 
 class Subsession(BaseSubsession):
     pass
-
-
+def creating_session(subsession: Subsession):
+    for p in subsession.get_players():
+        p.mpl_option1 = random.choice(['AltEmot', 'EmotAlt'])
 class Group(BaseGroup):
     pass
 
@@ -123,6 +130,10 @@ def make_slider(label):
     return models.IntegerField(label=label, min=0, max=100, blank=True)
 
 class Player(BasePlayer):
+
+    # Order in which the videos where positioned in the MPL the participant faced.
+    mpl_option1 = models.StringField()  # 'AltEmot' or 'EmotAlt'
+
     # Part 2 comprehension questions
     q1A = models.IntegerField(label="1. Option A pays: ", choices=[[0, '(me: 0, charity: 5)'], [1, '(me: 5, charity: 0)'], [2, '(me: 1, charity: 4)'], [3, '(me: 1, charity: 8)'], [4, '(me: 4, charity: 0)']])
     q1B = models.IntegerField(label="2. Option B pays: ", choices=[[0, '(me: 0, charity: 8)'], [1, '(me: 1, charity: 8)'], [2, '(me: 0, charity: 5)'], [3, '(me: 4, charity: 0)'], [4, '(me: 1, charity: 4)']])
@@ -142,7 +153,6 @@ class Player(BasePlayer):
               "while the Alternative Video is of similar length but unrelated to the charity.",
         choices=[[1, 'True'], [0, 'False']],
     )
-    rand = models.IntegerField()   # 1 or 2, drawn 50/50 after the Part 2 page
 
     # Beliefs (asked after the video descriptions, before any video)
     # Question text shown to participants is written in Beliefs.html (so parts can be bold); labels here are for the data
@@ -187,8 +197,10 @@ class Player(BasePlayer):
     choice_11 = make_choice()
 
     # Summary measures
-    num_opt1 = models.IntegerField()     # number of rows where Option 1 (AltEmot) was chosen
-    switch_row = models.IntegerField()   # first row where Option 2 (EmotAlt) was chosen; empty if never
+    num_opt1 = models.IntegerField()     # number of rows where Option 1 was chosen (what Option 1 is: mpl_option1)
+    switch_row = models.IntegerField()   # first row where Option 2 was chosen; empty if never
+
+
 
     # Implemented row
     paid_row = models.IntegerField()     # row drawn at random
@@ -203,8 +215,7 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect,
     )
     wtp_amount = models.FloatField(
-        label="What is the largest bonus (in £) you would be willing to give up "
-              "to watch the videos in your preferred order? (Enter 0 if you have no preference.)",
+        label="How much bonus (in £) would we need to pay you to convince you to switch to the opposite order of your preferred one? (Enter 0 if you have no preference.)",
         min=0,
     )
 
@@ -219,6 +230,7 @@ class Player(BasePlayer):
         choices=[[1, 'False'], [0, 'True']],
         label="...a girl on an airplane.",
         widget=widgets.RadioSelect)
+
     # Attention questions, Alternative Video
     controlq_presenter = make_field3(label="...a male presenter.")
     controlq_drawing = make_field3(label="...a drawing.")
@@ -241,6 +253,7 @@ class Player(BasePlayer):
     donation = models.FloatField()           # £ to Save the Children: 8 if selected and B, else 0
     total_payment = models.FloatField()      # payment + bonus from the selected row of the decision table
                                              # (the guessing bonus is added after the study)
+
 
     # ---- Exit survey ----
     # Question texts are written in the templates (so parts can be bold); labels here are for the data
@@ -269,27 +282,23 @@ class Player(BasePlayer):
 
     # Temptation, per video (0 = not at all, 100 = very much)
     tempt_donate_charity = make_slider("Tempted to donate while watching the Charity Video")
-    tempt_keep_charity = make_slider("Tempted to keep while watching the Charity Video")
     ant_tempt_donate_charity = make_slider("Expected to be tempted to donate, Charity Video")
-    ant_tempt_keep_charity = make_slider("Expected to be tempted to keep, Charity Video")
     tempt_donate_alt = make_slider("Tempted to donate while watching the Alternative Video")
-    tempt_keep_alt = make_slider("Tempted to keep while watching the Alternative Video")
     ant_tempt_donate_alt = make_slider("Expected to be tempted to donate, Alternative Video")
-    ant_tempt_keep_alt = make_slider("Expected to be tempted to keep, Alternative Video")
 
     # Counterfactual: A/B choice had the implemented order been reversed
     cf_choice = models.StringField(
         choices=[['A', 'Option A (you: £5, charity: £0)'], ['B', 'Option B (you: £1, charity: £8)']],
         widget=widgets.RadioSelect, label="")
-    # Why they prefer the order chosen in the zero-bonus row (C.ZERO_ROW)
+    # Why they prefer one video or another (or none) as per the WTP question.
     reason_order = models.LongStringField(label="")
 
-    # Repeated price-list rows (C.REP_ROWS), stored as 1 = Option 1, 2 = Option 2
-    rep_choice_a = make_choice()
-    rep_choice_b = make_choice()
-    rep_match = models.IntegerField()  # 0-2: number of repeated rows answered as in the original table
 
 # FUNCTIONS
+
+# True if Option 1 is "Alternative video first", False if Option 1 is "Charity video first"
+def alt_is_opt1(player: Player):
+    return player.mpl_option1 == 'AltEmot'
 
 # Text shown in one cell of the table, e.g. "Alternative video first + £0.70"
 # (no "+ £..." when the bonus is 0). Used only inside get_rows().
@@ -302,27 +311,33 @@ def option_text(label, bonus):
 # Builds the content of the 11 table rows (decision number, field name, text of Option 1 and Option 2).
 # Used by the TimingDecision_MPL page (table with active buttons) and, through example_rows(),
 # by the example tables on the TimingInstructions page (Instructions 2/2 and comprehension screens).
-def get_rows():
+def get_rows(player: Player):
+    #randomizes the video positions
+    if alt_is_opt1(player):
+        label_1, label_2 = C.LABEL_ALT, C.LABEL_CHARITY
+    else:
+        label_1, label_2 = C.LABEL_CHARITY, C.LABEL_ALT
     rows = []
     for k in range(1, C.NUM_ROWS + 1):
         rows.append(dict(
             number=k,
-            field='choice_' + str(k),
-            option_1=option_text(C.LABEL_1, C.BONUS_1[k - 1]),
-            option_2=option_text(C.LABEL_2, C.BONUS_2[k - 1]),
+            field='choice_' + str(k), #Decision - row number
+            option_1=option_text(label_1, C.BONUS_1[k - 1]), #Label (video) + bonus
+            option_2=option_text(label_2, C.BONUS_2[k - 1]),
         ))
     return rows
 
 
 # Rows for the example tables (TimingInstructions page): same text as get_rows(), plus which
 # button is shown as ticked (choices: 1, 2 or None per row) and which rows are highlighted.
-def example_rows(choices, highlight_rows):
-    rows = get_rows()
+def example_rows(player: Player, choices, highlight_rows):
+    rows = get_rows(player) #get the order of videos for the player, get_rows calls alt_is_opt1(player) and puts “Alternative video first” or “Charity video first” in each column.
     for row, ch in zip(rows, choices):
         row['opt1_checked'] = (ch == 1)
         row['opt2_checked'] = (ch == 2)
         row['highlight'] = (row['number'] in highlight_rows)
     return rows
+
 
 
 # Checks that all 1's come before all 2's (all-1 and all-2 are allowed).
@@ -336,19 +351,24 @@ def is_single_switch(choices):
 # PAGES
 
 # Variables for the Instructions 2/2 text and example table.
-def instructions2_vars():
+def instructions2_vars(player: Player):
     # Example table: Option 1 in rows 1-4, Option 2 in rows 5-11; row 9 is the "randomly selected" one
     ex_row = 9
     choices = [1] * 4 + [2] * (C.NUM_ROWS - 4)
+    if alt_is_opt1(player):
+        label_2 = C.LABEL_CHARITY
+    else:
+        label_2 = C.LABEL_ALT
 
     return dict(
-        table=example_rows(choices, [ex_row]),
+        table=example_rows(player, choices, [ex_row]),
         ex_row=ex_row,
         ex_bonus=money(C.BONUS_2[ex_row - 1]),     # £0.50
+        ex_label=label_2,                           # Option 2 is chosen in the example row, which is either Alt or Emot
+        ex_first_video='Alternative Video' if label_2 == C.LABEL_ALT else 'Charity Video',
         prob_extreme=f"{C.PROB_EXTREME * 100:g}%",  # 27.5%
         prob_middle=f"{C.PROB_MIDDLE * 100:g}%",    # 5%
     )
-
 
 # Part 2 on one page with three screens: Instructions 1/2 (options A/B), Instructions 2/2 (videos and orders),
 # comprehension check (A/B payoffs + videos and timing). Back/Next between screens happen in the browser.
@@ -363,9 +383,13 @@ class DInstructions(Page):
             return 'You did not answer all questions correctly. Please go back to the instructions and revise your answers.'
 
     @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        player.rand = random.choice([1, 2])   # 50/50
-
+    def vars_for_template(player: Player):
+        # Timelines on Instructions 2/2 follow the randomized position of the two orders for the plater
+        if alt_is_opt1(player):
+            label_1, label_2 = C.LABEL_ALT, C.LABEL_CHARITY
+        else:
+            label_1, label_2 = C.LABEL_CHARITY, C.LABEL_ALT
+        return dict(opt1_alt=alt_is_opt1(player), label_1=label_1, label_2=label_2)
 
 # Beliefs about others (incentivized) and about oneself (not incentivized), before any video.
 class Beliefs(Page):
@@ -391,20 +415,20 @@ class TimingInstructions(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
-        v = instructions2_vars()                                  # Instructions 2/2 example table
-        v['comp_table'] = example_rows(COMP_CHOICES_TABLE, [])   # comprehension table, no highlighted row
+        v = instructions2_vars(player)                                    # example table, example sentence and probabilities (instructions screen)
+        v['comp_table'] = example_rows(player, COMP_CHOICES_TABLE, [])   # comprehension table, no highlighted row
         return v
 
     @staticmethod
     def js_vars(player: Player):
-        return dict(correct_q1=COMP1_CORRECT, correct_q2=COMP2_CORRECT)
+        # Correct answers depend on mpl_option1 (which order is Option 1); the page's JavaScript checks against these
+        return dict(correct_q1=comp1_correct(player), correct_q2=comp2_correct(player))
 
     @staticmethod
     def error_message(player: Player, values):
         # Backup check; the page's JavaScript already shows the red alert
-        if values['comp_q1'] != COMP1_CORRECT or values['comp_q2'] != COMP2_CORRECT:
+        if values['comp_q1'] != comp1_correct(player) or values['comp_q2'] != comp2_correct(player):
             return 'At least one answer is not correct. Please try again.'
-
 
 class TimingDecision_MPL(Page):
     form_model = 'player'
@@ -412,8 +436,7 @@ class TimingDecision_MPL(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
-        return dict(rows=get_rows())
-
+        return dict(rows=get_rows(player))
     @staticmethod
     def error_message(player: Player, values):
         # Backup check; the page's JavaScript already enforces this
@@ -423,26 +446,42 @@ class TimingDecision_MPL(Page):
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
+        # Choices in the 11 rows, as columns: 1 = Option 1, 2 = Option 2 (what each column contains depends on mpl_option1)
         choices = [getattr(player, 'choice_' + str(k)) for k in range(1, C.NUM_ROWS + 1)]
 
-        # Summary measures
-        player.num_opt1 = choices.count(1)
+        # Summary measures (in columns, not orders)
+        player.num_opt1 = choices.count(1)              # number of rows where Option 1 was chosen
         if 2 in choices:
-            player.switch_row = choices.index(2) + 1
+            player.switch_row = choices.index(2) + 1    # first row where Option 2 was chosen; stays empty if never
 
         # Draw one row (rows 1 and 11 more likely) and implement the choice made in it
         player.paid_row = random.choices(range(1, C.NUM_ROWS + 1), weights=C.ROW_WEIGHTS)[0]
-        player.paid_option = choices[player.paid_row - 1]
+        player.paid_option = choices[player.paid_row - 1]    # what the participant ticked in the selected paid_row: column 1 or 2
+
+        # Order that will be implemented, depends on what the participant saw in his MPL.
+        if player.mpl_option1 == 'AltEmot':      # left column: Alternative first, right column: Charity first
+            if player.paid_option == 1:
+                player.imp_order = 'AltEmot'
+            else:
+                player.imp_order = 'EmotAlt'
+        else:                                    # left column: Charity first, right column: Alternative first
+            if player.paid_option == 1:
+                player.imp_order = 'EmotAlt'
+            else:
+                player.imp_order = 'AltEmot'
+
+
+        # Bonus belongs to the column, not to the order: Option 1 has bonuses in rows 1-5, Option 2 in rows 7-11
         if player.paid_option == 1:
-            player.imp_order = 'AltEmot'
             player.bonus = C.BONUS_1[player.paid_row - 1]
         else:
-            player.imp_order = 'EmotAlt'
             player.bonus = C.BONUS_2[player.paid_row - 1]
 
         # Store for later apps
         player.participant.vars['imp_order'] = player.imp_order
         player.participant.vars['mpl_bonus'] = player.bonus
+
+
 
 class WTP(Page):
     form_model = 'player'
@@ -463,16 +502,16 @@ class WTP(Page):
 class Results(Page):
     @staticmethod
     def vars_for_template(player: Player):
-        if player.paid_option == 1:
-            label = C.LABEL_1
-            order = C.ORDER_1
+        if player.imp_order == 'AltEmot':
+            label = C.LABEL_ALT
+            order = C.ORDER_ALT
         else:
-            label = C.LABEL_2
-            order = C.ORDER_2
+            label = C.LABEL_CHARITY
+            order = C.ORDER_CHARITY
 
         # The participant's own selected row, with their choice ticked (same text as the decision table)
         choices = [getattr(player, 'choice_' + str(k)) for k in range(1, C.NUM_ROWS + 1)]
-        selected_row = example_rows(choices, [player.paid_row])[player.paid_row - 1]
+        selected_row = example_rows(player, choices, [player.paid_row])[player.paid_row - 1]
 
         return dict(received=label, order=order, bonus_text=money(player.bonus), selected_row=selected_row)
 
@@ -633,12 +672,12 @@ class Emotions(Page):
     def error_message(player: Player, values):
         return slider_error(values, ['ant' + video_suffix(player, 1), 'ant' + video_suffix(player, 2)])
 
-# Experienced and anticipated temptation to donate and to keep, one block per video (in the order watched)
+# Experienced and anticipated temptation to donate, one block per video (in the order watched)
 def temptation_fields(player: Player):
     fields = []
     for k in [1, 2]:
         s = video_suffix(player, k)
-        fields += ['tempt_donate' + s, 'tempt_keep' + s, 'ant_tempt_donate' + s, 'ant_tempt_keep' + s]
+        fields += ['tempt_donate' + s, 'ant_tempt_donate' + s]
     return fields
 
 
@@ -658,9 +697,7 @@ class Temptation(Page):
                 name=video_name(player, k),
                 position=position,
                 donate='tempt_donate' + s,
-                keep='tempt_keep' + s,
                 ant_donate='ant_tempt_donate' + s,
-                ant_keep='ant_tempt_keep' + s,
             ))
         return dict(videos=videos)
 
@@ -669,38 +706,24 @@ class Temptation(Page):
         return slider_error(values, temptation_fields(player))
 
 
-# Counterfactual (relative to the implemented order) and reason for the preferred order (zero-bonus row)
+# Counterfactual (relative to the implemented order) and reason for the preferred order (as per WTP page question 1)
 class Reasons(Page):
     form_model = 'player'
     form_fields = ['cf_choice', 'reason_order']
 
+
     @staticmethod
     def vars_for_template(player: Player):
-        if getattr(player, 'choice_' + str(C.ZERO_ROW)) == 2:
+        # Question 2 refers to the answer to "Which order would you prefer?" on the WTP page
+        # (pref_order: 1 = Alternative video first, 2 = Charity video first, 0 = no preference)
+        if player.pref_order == 1:
+            pref_first = 'Alternative Video'
+        elif player.pref_order == 2:
             pref_first = 'Charity Video'
         else:
-            pref_first = 'Alternative Video'
+            pref_first = None  # no preference: the page asks a different question 2
         return dict(first=video_name(player, 1), second=video_name(player, 2), pref_first=pref_first)
 
-
-# Two rows of the price list again
-class RepeatRows(Page):
-    form_model = 'player'
-    form_fields = ['rep_choice_a', 'rep_choice_b']
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        rows = get_rows()
-        rep = [rows[C.REP_ROWS[0] - 1], rows[C.REP_ROWS[1] - 1]]
-        rep[0]['field'] = 'rep_choice_a'
-        rep[1]['field'] = 'rep_choice_b'
-        return dict(rep_rows=rep)
-
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        original_a = getattr(player, 'choice_' + str(C.REP_ROWS[0]))
-        original_b = getattr(player, 'choice_' + str(C.REP_ROWS[1]))
-        player.rep_match = int(player.rep_choice_a == original_a) + int(player.rep_choice_b == original_b)
 
 # Feedback questions; the payment is computed here so that it is fixed before the Back page is shown
 class Feedback(Page):
@@ -761,7 +784,6 @@ page_sequence = [
     Emotions,
     Temptation,
     Reasons,
-    RepeatRows,
     Feedback,
     Back
 ]

@@ -1,3 +1,4 @@
+import os
 from os import environ
 
 
@@ -109,43 +110,43 @@ SESSION_CONFIGS = [
 #   error_code="ECODE",
     #   ),
 
-dict(
-        name='VideoChoice',
-        app_sequence=['RET','VideoChoice_Control','VideoChoice_Emotional',
-                      'VideoChoice_PressureNoJ','VideoChoice_PressureJ'],
-        num_demo_participants=2,
-        cc_code="CCCODE",
-        error_code="ECODE",
-    ),
-dict(
-        name='VideoChoice_Emotional',
-        app_sequence=['VideoChoice_Emotional'],
-        num_demo_participants=2,
-        cc_code="CCCODE",
-        error_code="ECODE",
-    ),
-dict(
-        name='VideoChoice_PressureNoJ',
-        app_sequence=['VideoChoice_PressureNoJ'],
-        num_demo_participants=2,
-        cc_code="CCCODE",
-        error_code="ECODE",
-    ),
-dict(
-        name='VideoChoice_PressureJ',
-        app_sequence=['VideoChoice_PressureJ'],
-        num_demo_participants=2,
-        cc_code="CCCODE",
-        error_code="ECODE",
-    ),
-dict(
-        name='VideoControl',
-        app_sequence=['VideoChoice_Control'],
-        num_demo_participants=2,
-        cc_code="CCCODE",
-        error_code="ECODE",
-    ),
-    dict(
+#dict(
+    #        name='VideoChoice',
+    #    app_sequence=['RET','VideoChoice_Control','VideoChoice_Emotional',
+    #                 'VideoChoice_PressureNoJ','VideoChoice_PressureJ'],
+    #   num_demo_participants=2,
+    #   cc_code="CCCODE",
+#   error_code="ECODE",
+    #    ),
+#dict(
+    #       name='VideoChoice_Emotional',
+    #   app_sequence=['VideoChoice_Emotional'],
+    #   num_demo_participants=2,
+    #   cc_code="CCCODE",
+#   error_code="ECODE",
+    #   ),
+#dict(
+    #       name='VideoChoice_PressureNoJ',
+    #   app_sequence=['VideoChoice_PressureNoJ'],
+    #   num_demo_participants=2,
+    #   cc_code="CCCODE",
+#   error_code="ECODE",
+    #   ),
+#dict(
+    #        name='VideoChoice_PressureJ',
+    #    app_sequence=['VideoChoice_PressureJ'],
+    #   num_demo_participants=2,
+    #   cc_code="CCCODE",
+#   error_code="ECODE",
+    #   ),
+#dict(
+    #       name='VideoControl',
+    #   app_sequence=['VideoChoice_Control'],
+    #   num_demo_participants=2,
+    #   cc_code="CCCODE",
+#   error_code="ECODE",
+    #   ),
+     dict(
         name='MPL',
         app_sequence=['RET', 'mpl_all'],
         num_demo_participants=2,
@@ -185,6 +186,15 @@ DEMO_PAGE_INTRO_HTML = """
 Here are some oTree games.
 """
 
+
+# RECAPTCHA V2
+RECAPTCHA_SITE_KEY = "6LdiywQuAAAAAL8KHwTadbw4ahyBWpVS6Nb5s4wc"
+
+#RECAPTCHA_SECRET_KEY = "6LdiywQuAAAAABiEnjBE1ZZosxFBSx7RR_LhY3uN"
+
+#Recaptcha
+#RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY') #set in heroku the value of this so that it remains secret
 
 SECRET_KEY = '{{ secret_key }}'
 

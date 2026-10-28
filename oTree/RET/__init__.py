@@ -4,6 +4,10 @@ import time
 from .image_utils import encode_image
 import random
 
+# RECAPTCHA
+import requests
+from otree.settings import RECAPTCHA_SECRET_KEY, RECAPTCHA_SITE_KEY
+
 doc = """
 Real Effort Task by Chris
 """
@@ -30,20 +34,17 @@ class Player(BasePlayer):
     num_failed = models.IntegerField(initial=0)
     prolific_id = models.StringField()
     treatnumber = models.IntegerField()
+    is_human = models.BooleanField(initial=False)  # RECAPTCHA
 
-    def set_error_message(player, value):
-        correct_answers = {
-                        'q1A': 1,
-                        'q1B': 1,
-                        'q_change': 2,
-                        'q_imp': 1,
-                        'q_video': 0}
-        list_answers = list(value.items())[0:]
-        list_correct_answers = list(correct_answers.items())
-        if list_answers != list_correct_answers:
-            Text = 'You did not answer all questions correctly. Please read the instructions again and correct your answers.'
-            return Text
 
+
+# RECAPTCHA: verify token with Google
+def recaptcha_valid(response_token):
+    res = requests.post("https://www.google.com/recaptcha/api/siteverify", data={
+        'secret': RECAPTCHA_SECRET_KEY,
+        'response': response_token
+    })
+    return res.json()["success"]
 
 def get_task_module(player):
     """
@@ -251,6 +252,25 @@ def creating_session(subsession: Subsession):
 class Welcome(Page):
     form_model = 'player'
     form_fields = ['prolific_id']
+
+    # RECAPTCHA: pass site key to template
+    @staticmethod
+    def vars_for_template(player: Player):
+        return {
+            "RECAPTCHA_SITE_KEY": RECAPTCHA_SITE_KEY
+        }
+
+    # RECAPTCHA: receive token from browser and verify
+    @staticmethod
+    def live_method(player: Player, data):
+        if recaptcha_valid(data["response_token"]):
+            player.is_human = True
+
+    # RECAPTCHA: block page submission if not solved
+    @staticmethod
+    def error_message(player, values):
+        if not player.is_human:
+            return 'You did not solve the captcha.'
 
 
 class InstructionsGame(Page):

@@ -65,22 +65,17 @@
         </p>
 
 
-           <!--    <p><b>Example:</b> The table below shows the decision table and how a person may fill it in.
-In Decision 9, the choice is between "Alternative video first" and "Charity video first + £0.50".
-This person chose the second option. So if Decision 9 is selected, this person watches the
-Charity Video first and receives a bonus of £0.50. Had this person chosen the first option,
-they would watch the Alternative Video first and receive no bonus.<p>-->
+
 
         <p>Notice that since each of your decisions can be selected, you should think carefully about each decision. Decisions 1 and {{ C.NUM_ROWS }} are each selected with a probability of {{ prob_extreme }};
         each of the other decisions is selected with a probability of {{ prob_middle }}.</p>
 
-      <!--   <p><b>Example.</b> The table below shows the decision table and how a person may fill it in.</p>-->
 <h5>Example</h5>
 <p>Below is an example of a filled-in table.</p>
      <p>
          Suppose Decision 9 (highlighted) is selected.
-This person chose Option 2, "Charity video first + £0.50", so they watch the Charity Video first
-and receive a £0.50 bonus.</p>
+        This person chose Option 2, "{{ ex_label }} + {{ ex_bonus }}", so they watch the {{ ex_first_video }} first
+and receive a {{ ex_bonus }} bonus.</p>
 
         <table class="table table-striped mpl-table">
             <thead>
@@ -108,12 +103,6 @@ and receive a £0.50 bonus.</p>
         </table>
 
 
-      <!--   <div class="example-box">
-            <b>What would happen:</b> suppose the computer randomly selects decision {{ ex_row }} (highlighted).
-            In that decision, this person chose Option 2, "{{ C.LABEL_2 }} + {{ ex_bonus }}".
-            So this person first watches the Charity Video, then makes the choice between Option A (you: £5, charity: £0) and
-            Option B (you: £1, charity: £8), and then watches the Alternative Video. This person also receives a bonus of {{ ex_bonus }}.
-        </div>-->
 
         <p>Before you make your decisions, we will ask you some comprehension questions to check that everything is clear.</p>
 

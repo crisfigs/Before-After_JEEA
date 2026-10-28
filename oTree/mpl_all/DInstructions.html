@@ -70,6 +70,8 @@
 
         <p>You and the charity will be paid according to your choice between both options above at the end of the
         survey with a 1 in 5 chance. In any case, you will get your participation fee for sure.</p>
+
+       <p> As we explain next, you will watch some videos before and after this donation decision.</p>
     </div></div>
 
     <br>
@@ -103,23 +105,44 @@
 
         <p style="margin-top: 2rem;"><b>The two possible orders in which you can choose to watch them are:</b></p>
 
+              <!-- Position of the two orders is randomized: mpl_option1 = 'AltEmot' -> Alternative first is Option 1 -->
+        {{ if opt1_alt }}
         <div class="timeline">
-            <div class="timeline-label"><span class="opt">Option 1</span><br>{{ C.LABEL_1 }}</div>
+            <div class="timeline-label"><span class="opt">Option 1</span><br>{{ label_1 }}</div>
             <div class="step step-alt">Alternative Video</div>
             <span class="arrow">&rarr;</span>
-            <div class="step step-choice">Your choice: A or B</div>
+            <div class="step step-choice">Your donation choice: A or B</div>
             <span class="arrow">&rarr;</span>
             <div class="step step-charity">Charity Video</div>
         </div>
 
         <div class="timeline">
-            <div class="timeline-label"><span class="opt">Option 2</span><br>{{ C.LABEL_2 }}</div>
+            <div class="timeline-label"><span class="opt">Option 2</span><br>{{ label_2 }}</div>
             <div class="step step-charity">Charity Video</div>
             <span class="arrow">&rarr;</span>
-            <div class="step step-choice">Your choice: A or B</div>
+            <div class="step step-choice">Your donation choice: A or B</div>
             <span class="arrow">&rarr;</span>
             <div class="step step-alt">Alternative Video</div>
         </div>
+        {{ else }}
+        <div class="timeline">
+            <div class="timeline-label"><span class="opt">Option 1</span><br>{{ label_1 }}</div>
+            <div class="step step-charity">Charity Video</div>
+            <span class="arrow">&rarr;</span>
+            <div class="step step-choice">Your donation choice: A or B</div>
+            <span class="arrow">&rarr;</span>
+            <div class="step step-alt">Alternative Video</div>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-label"><span class="opt">Option 2</span><br>{{ label_2 }}</div>
+            <div class="step step-alt">Alternative Video</div>
+            <span class="arrow">&rarr;</span>
+            <div class="step step-choice">Your donation choice: A or B</div>
+            <span class="arrow">&rarr;</span>
+            <div class="step step-charity">Charity Video</div>
+        </div>
+        {{ endif }}
 
     </div></div>
 
