@@ -165,17 +165,19 @@ class Player(BasePlayer):
         min=0, max=100,
         label="Of 100 participants who watch the Alternative Video first, how many do you think will donate (choose Option B)?",
     )
-    # (b) about oneself, 0-100 likelihood; not incentivized
+    # (b) about oneself, binary "most likely" action; not incentivized (0 = Option A, 1 = Option B)
     belief_self_charity = models.IntegerField(
-        min=0, max=100,
-        label="If you watch the Charity Video first, how likely is it that you will donate (choose Option B)? "
-              "(0 = certainly not, 100 = certainly)",
+        choices=[[0, 'Option A (you: £5, charity: £0)'], [1, 'Option B (you: £1, charity: £8)']],
+        widget=widgets.RadioSelect,
+        label="If you watch the Charity Video first, which option are you most likely to choose?",
     )
     belief_self_alt = models.IntegerField(
-        min=0, max=100,
-        label="If you watch the Alternative Video first, how likely is it that you will donate (choose Option B)? "
-              "(0 = certainly not, 100 = certainly)",
+        choices=[[0, 'Option A (you: £5, charity: £0)'], [1, 'Option B (you: £1, charity: £8)']],
+        widget=widgets.RadioSelect,
+        label="If you watch the Alternative Video first, which option are you most likely to choose?",
     )
+    #honepot, hidden input field that only a bot would see and fill
+    honeypot = models.StringField(blank=True)
 
     # MPL comprehension
     #  answers as a dropdown menu per default
@@ -394,7 +396,7 @@ class DInstructions(Page):
 # Beliefs about others (incentivized) and about oneself (not incentivized), before any video.
 class Beliefs(Page):
     form_model = 'player'
-    form_fields = ['belief_others_charity', 'belief_others_alt', 'belief_self_charity', 'belief_self_alt']
+    form_fields = ['belief_others_charity', 'belief_others_alt', 'belief_self_charity', 'belief_self_alt', 'honeypot']
 
     @staticmethod
     def vars_for_template(player: Player):

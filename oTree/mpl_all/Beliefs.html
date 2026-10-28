@@ -33,71 +33,6 @@
         white-space: nowrap;
         vertical-align: 1px;
     }
-    /* ---- sliders for questions 3 and 4 ---- */
-    .slider-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        max-width: 640px;
-    }
-    .slider-row .end {
-        font-size: 0.875em;
-        color: #6c757d;
-        white-space: nowrap;
-        text-align: center;
-        line-height: 1.2;
-    }
-    .belief-slider {
-        flex: 1;
-        min-width: 0;
-        cursor: pointer;
-        -webkit-appearance: none;
-        appearance: none;
-        height: 6px;
-        background: #dee2e6;      /* one plain grey track: no fill that would hint at a default */
-        border-radius: 3px;
-        outline-offset: 6px;
-    }
-    .belief-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #008CBA;
-        border: 2px solid #ffffff;
-        box-shadow: 0 0 0 1px #008CBA;
-    }
-    .belief-slider::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #008CBA;
-        border: 2px solid #ffffff;
-        box-shadow: 0 0 0 1px #008CBA;
-    }
-    .belief-slider::-moz-range-track { background: #dee2e6; height: 6px; border-radius: 3px; }
-    /* no knob until the participant clicks on the scale, so there is no default answer */
-    .belief-slider.untouched::-webkit-slider-thumb { opacity: 0; }
-    .belief-slider.untouched::-moz-range-thumb { opacity: 0; }
-    .slider-value {
-        font-size: 0.875em;
-        color: #6c757d;
-        margin-top: 4px;
-        max-width: 640px;          /* same width as the slider row, so the text sits under the middle of the scale */
-        text-align: center;
-    }
-    .slider-value.answered {
-        color: #212529;
-        font-weight: bold;
-    }
-    .slider-missing {
-        color: #dc3545;
-        font-size: 0.875em;
-        display: none;
-        max-width: 640px;
-        text-align: center;
-    }
     .nav-buttons {
         display: flex;
         justify-content: space-between;
@@ -146,39 +81,37 @@
         Guesses within &plusmn;{{ C.BELIEF_TOL }} of the actually observed proportion in this study (calculated when the study is complete) get a <b>{{ belief_pence }} pence</b> bonus in these questions.
     </div>
 
-    <!-- Beliefs about oneself: not incentivized -->
-
+    <!-- Beliefs about oneself: not incentivized. Binary: 0 = Option A, 1 = Option B; no option preselected -->
     <div class="belief-q">
-        <label class="col-form-label" for="id_belief_self_charity">
-            3. If you <b>watch the Charity Video first</b>, how likely is it that you will donate, i.e. choose Option B (you: £1, charity: £8)?
+        <label class="col-form-label">
+            3. If you <b>watch the Charity Video first</b>, which option do you think you are most likely to choose?
         </label>
-        <div class="slider-row">
-            <span class="end">0<br>certainly not</span>
-            <input type="range" class="belief-slider untouched" id="id_belief_self_charity" min="0" max="100" step="1" value="50"
-                   data-field="belief_self_charity">
-            <span class="end">100<br>certainly</span>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_charity" id="id_belief_self_charity_0" value="0" required>
+            <label class="form-check-label" for="id_belief_self_charity_0">Option A (you: £5, charity: £0)</label>
         </div>
-        <div class="slider-value" id="value_belief_self_charity">Click on the scale to give your answer.</div>
-        <div class="slider-missing" id="missing_belief_self_charity">Please give an answer to this question.</div>
-        <input type="hidden" name="belief_self_charity" id="hidden_belief_self_charity">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_charity" id="id_belief_self_charity_1" value="1">
+            <label class="form-check-label" for="id_belief_self_charity_1">Option B (you: £1, charity: £8)</label>
+        </div>
         {{ formfield_errors 'belief_self_charity' }}
     </div>
 
     <div class="belief-q">
-        <label class="col-form-label" for="id_belief_self_alt">
-            4. If you <b>watch the Alternative Video first</b>, how likely is it that you will donate, i.e. choose Option B (you: £1, charity: £8)?
+        <label class="col-form-label">
+            4. If you <b>watch the Alternative Video first</b>, which option do you think you are most likely to choose?
         </label>
-        <div class="slider-row">
-            <span class="end">0<br>certainly not</span>
-            <input type="range" class="belief-slider untouched" id="id_belief_self_alt" min="0" max="100" step="1" value="50"
-                   data-field="belief_self_alt">
-            <span class="end">100<br>certainly</span>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_alt" id="id_belief_self_alt_0" value="0" required>
+            <label class="form-check-label" for="id_belief_self_alt_0">Option A (you: £5, charity: £0)</label>
         </div>
-        <div class="slider-value" id="value_belief_self_alt">Click on the scale to give your answer.</div>
-        <div class="slider-missing" id="missing_belief_self_alt">Please give an answer to this question.</div>
-        <input type="hidden" name="belief_self_alt" id="hidden_belief_self_alt">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_alt" id="id_belief_self_alt_1" value="1">
+            <label class="form-check-label" for="id_belief_self_alt_1">Option B (you: £1, charity: £8)</label>
+        </div>
         {{ formfield_errors 'belief_self_alt' }}
     </div>
+<input  style="opacity: 0"  id="honeypot" name="honeypot">
 
 </div></div>
 
@@ -217,40 +150,6 @@
         });
         el.addEventListener('input', check);
         el.addEventListener('blur', check);
-    });
-
-    // Sliders (questions 3 and 4): the answer is copied into a hidden field once the participant clicks or drags
-    document.querySelectorAll('.belief-slider').forEach(function (sl) {
-        var field = sl.dataset.field;
-        function record() {
-            sl.classList.remove('untouched');
-            document.getElementById('hidden_' + field).value = sl.value;
-            var v = document.getElementById('value_' + field);
-            v.textContent = 'Your answer: ' + sl.value;
-            v.classList.add('answered');
-            document.getElementById('missing_' + field).style.display = 'none';
-        }
-        sl.addEventListener('input', record);
-        sl.addEventListener('change', record);
-        sl.addEventListener('pointerup', record);   // a click exactly on the middle does not fire 'input'
-    });
-
-    // Do not submit while a slider has not been answered
-    var form = document.getElementById('form') || document.querySelector('form');
-    form.addEventListener('submit', function (e) {
-        var missing = false;
-        document.querySelectorAll('.belief-slider').forEach(function (sl) {
-            if (document.getElementById('hidden_' + sl.dataset.field).value === '') {
-                document.getElementById('missing_' + sl.dataset.field).style.display = 'block';
-                missing = true;
-            }
-        });
-        if (missing) {
-            e.preventDefault();
-            setTimeout(function () {
-                document.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
-            }, 100);
-        }
     });
 </script>
 {{ endblock }}
