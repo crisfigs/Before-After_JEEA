@@ -495,12 +495,6 @@ class WTP(Page):
         if values['pref_order'] in [1, 2] and values['wtp_amount'] is None:
             return 'Please enter the largest bonus you would be willing to give up.'
 
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        # No preference -> no amount stored
-        if player.pref_order == 0:
-            player.wtp_amount = None
-
 class Results(Page):
     @staticmethod
     def vars_for_template(player: Player):
