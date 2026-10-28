@@ -4,7 +4,6 @@ import random
 doc = """
 Page order: DInstructions (Part 2 instructions 1/2: options A/B, 2/2: videos and orders, then one comprehension check)
 -> Beliefs -> TimingInstructions (Instructions 2/2 + comprehension) -> TimingDecision_MPL -> WTP -> Results.
-
 Price list for video order (oTree 5).
 11 rows: Option 1 (+ bonus in rows 1-5), Option 2 (+ bonus in rows 7-11).
 Which order is Option 1 is randomized per participant (mpl_option1 = 'AltEmot' or 'EmotAlt').
@@ -198,8 +197,7 @@ class Player(BasePlayer):
     choice_10 = make_choice()
     choice_11 = make_choice()
 
-    # Summary measures
-    num_opt1 = models.IntegerField()     # number of rows where Option 1 was chosen (what Option 1 is: mpl_option1)
+    # For the switching point
     switch_row = models.IntegerField()   # first row where Option 2 was chosen; empty if never
 
 
@@ -279,8 +277,8 @@ class Player(BasePlayer):
     boredom_alt = make_emotion("Boredom")
 
     # Anticipated emotions (0 = not at all, 100 = very much)
-    ant_charity = make_slider("Anticipated the emotions, Charity Video")
-    ant_alt = make_slider("Anticipated the emotions, Alternative Video")
+    #ant_charity = make_slider("Anticipated the emotions, Charity Video")
+    #ant_alt = make_slider("Anticipated the emotions, Alternative Video")
 
     # Temptation, per video (0 = not at all, 100 = very much)
     tempt_donate_charity = make_slider("Tempted to donate while watching the Charity Video")
@@ -295,6 +293,12 @@ class Player(BasePlayer):
     # Why they prefer one video or another (or none) as per the WTP question.
     reason_order = models.LongStringField(label="")
 
+    # Donation behaviour and StC
+    donationq = models.IntegerField(label="Are you already a donor for Save the Children?", choices = [[1,"Yes"],[0,"No"]])
+    donationqother = models.IntegerField(label="Are you already a donor for any other charity?", choices=[[1, "Yes"], [0, "No"]])
+    charityq = models.IntegerField(label="Do you think Save the Children is a charity worth donating?", choices=[1, 2, 3, 4,5],widget=widgets.RadioSelectHorizontal)
+    knowstc = models.IntegerField(label="Had you heard of Save the Children before this study?",
+                                  choices=[[1, "Yes"], [0, "No"]])
 
 # FUNCTIONS
 
@@ -452,7 +456,6 @@ class TimingDecision_MPL(Page):
         choices = [getattr(player, 'choice_' + str(k)) for k in range(1, C.NUM_ROWS + 1)]
 
         # Summary measures (in columns, not orders)
-        player.num_opt1 = choices.count(1)              # number of rows where Option 1 was chosen
         if 2 in choices:
             player.switch_row = choices.index(2) + 1    # first row where Option 2 was chosen; stays empty if never
 
@@ -492,8 +495,8 @@ class WTP(Page):
     @staticmethod
     def error_message(player: Player, values):
         # The amount is only needed if the person has a preferred order
-        if values['pref_order'] in [1, 2] and values['wtp_amount'] is None:
-            return 'Please enter the largest bonus you would be willing to give up.'
+        if values['pref_order'] in [1, 2,0] and values['wtp_amount'] is None:
+            return 'Please enter a value.'
 
 class Results(Page):
     @staticmethod
@@ -510,7 +513,16 @@ class Results(Page):
         selected_row = example_rows(player, choices, [player.paid_row])[player.paid_row - 1]
 
         return dict(received=label, order=order, bonus_text=money(player.bonus), selected_row=selected_row)
-
+#Example. Take mpl_option1 = 'EmotAlt', choices [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2] and
+    # paid_row = 11, so paid_option = 2, imp_order = 'AltEmot' and bonus = 1.00. It returns:
+#dict(
+   # received='Alternative video first',
+    #order='the Alternative Video first and the Charity Video after your choice between Option A and Option B',
+    #bonus_text='£1.00',
+    #selected_row=dict(number=11, field='choice_11',
+     #                 option_1='Charity video first',
+      #                option_2='Alternative video first + £1.00',
+       #               opt1_checked=False, opt2_checked=True, highlight=True),)
 def charity_first(player: Player):
     return player.imp_order == 'EmotAlt'
 
@@ -608,19 +620,26 @@ class FailedAttention(Page):
 
 EMOTIONS = ['happy', 'sad', 'fear', 'disgust', 'anger', 'compassion', 'guilt', 'boredom']
 
+#labels participants see
 EMOTION_LABELS = {'happy': 'Happiness', 'sad': 'Sadness', 'fear': 'Fear', 'disgust': 'Disgust',
                   'anger': 'Anger', 'compassion': 'Compassion', 'guilt': 'Guilt', 'boredom': 'Boredom'}
 
+
+## Name of the k-th video watched (k = 1 first, k = 2 second), as shown on the page.
+# Needed because the order watched depends on imp_order. Also used by Temptation and Reasons.
 def video_name(player: Player, k):
     return 'Charity Video' if video_number_is_charity(player, k) else 'Alternative Video'
 
-
+# Field-name ending of the k-th video watched: '_charity' or '_alt'.
+# Lets the page show videos in the order watched while storing answers by video. so that eg, happy is stored in happy_charity
+# if it's in the charity emotions
+# Also used by Temptation.
 def video_suffix(player: Player, k):
     return '_charity' if video_number_is_charity(player, k) else '_alt'
 
 
+# Random order of the emotions, drawn once per participant and kept the same for both videos, not saved in player vars
 def emotion_order(player: Player):
-    # Random order of the emotions, drawn once per participant and kept the same for both videos
     if 'emo_order' not in player.participant.vars:
         order = EMOTIONS.copy()
         random.shuffle(order)
@@ -628,64 +647,48 @@ def emotion_order(player: Player):
     return player.participant.vars['emo_order']
 
 
-def slider_error(values, fields):
-    # Server-side backup; slider.js already blocks submitting with an empty slider
-    for f in fields:
-        if values[f] is None:
-            return 'Please answer every question by clicking on the scale.'
 
 
-def emotion_fields(player: Player, k):
-    s = video_suffix(player, k)
-    return [e + s for e in emotion_order(player)] + ['ant' + s]
 
-
-def emotion_vars(player: Player, k, position):
-    return dict(video_name=video_name(player, k), position=position,
-                ant_field='ant' + video_suffix(player, k))
-
-
-# Rows of the emotion table and the anticipation slider for video k (1 = first watched, 2 = second)
-def emotion_block(player: Player, k, position):
-    s = video_suffix(player, k)
-    rows = [dict(field=e + s, label=EMOTION_LABELS[e]) for e in emotion_order(player)]
-    return dict(name=video_name(player, k), position=position, rows=rows, ant='ant' + s)
-
-
-# Experienced and anticipated emotions for both videos on one page (in the order watched)
+# Experienced emotions for both videos on one page (in the order watched)
 class Emotions(Page):
     form_model = 'player'
 
     @staticmethod
     def get_form_fields(player: Player):
-        return emotion_fields(player, 1) + emotion_fields(player, 2)
+        # All 16 emotion fields, 8 for emotional video, 8 for the alternative
+        return [e + '_charity' for e in EMOTIONS] + [e + '_alt' for e in EMOTIONS]
 
     @staticmethod
     def vars_for_template(player: Player):
-        return dict(videos=[emotion_block(player, 1, 'first'), emotion_block(player, 2, 'second')])
-
-    @staticmethod
-    def error_message(player: Player, values):
-        return slider_error(values, ['ant' + video_suffix(player, 1), 'ant' + video_suffix(player, 2)])
+        # One table per video, in the order watched; emotions in the participant's random order
+        videos = []
+        for k, position in [(1, 'first'), (2, 'second')]:
+            s = video_suffix(player, k) #give me the suffix of the video so I know where to store the emotions: in happy_charity or happy_alt
+            rows = [dict(field=e + s, label=EMOTION_LABELS[e]) for e in emotion_order(player)] #the names of the rows in the random order
+            videos.append(dict(name=video_name(player, k), position=position, rows=rows)) #the name of the kth video, kth position, the list
+        return dict(videos=videos)
+    #videos = [
+    #dict(name='Charity Video', position='first',
+     #    rows=[dict(field='guilt_charity', label='Guilt'),
+      #         dict(field='happy_charity', label='Happiness'),
+       #        ...]),                                   # 8 rows
+    #dict(name='Alternative Video', position='second',
+     #    rows=[dict(field='guilt_alt', label='Guilt'),
+      #         dict(field='happy_alt', label='Happiness'),
+       #        ...]),                                   # 8 rows
+#]
 
 # Experienced and anticipated temptation to donate, one block per video (in the order watched)
-def temptation_fields(player: Player):
-    fields = []
-    for k in [1, 2]:
-        s = video_suffix(player, k)
-        fields += ['tempt_donate' + s, 'ant_tempt_donate' + s]
-    return fields
-
-
 class Temptation(Page):
     form_model = 'player'
-
-    @staticmethod
-    def get_form_fields(player: Player):
-        return temptation_fields(player)
+    # The 4 sliders on this page (their order here does not matter)
+    form_fields = ['tempt_donate_charity', 'ant_tempt_donate_charity',
+                   'tempt_donate_alt', 'ant_tempt_donate_alt']
 
     @staticmethod
     def vars_for_template(player: Player):
+        # One block per video, in the order watched; donate / ant_donate are the field names for its two sliders
         videos = []
         for k, position in [(1, 'first'), (2, 'second')]:
             s = video_suffix(player, k)
@@ -699,10 +702,12 @@ class Temptation(Page):
 
     @staticmethod
     def error_message(player: Player, values):
-        return slider_error(values, temptation_fields(player))
+        # Server-side backup; slider.js already blocks submitting with an empty slider
+        for f in Temptation.form_fields:
+            if values[f] is None:
+                return 'Please answer every question by clicking on the scale.'
 
-
-# Counterfactual (relative to the implemented order) and reason for the preferred order (as per WTP page question 1)
+# Counterfactual (relative to the implemented order) and reason for the preferred order (as per WTP page question )
 class Reasons(Page):
     form_model = 'player'
     form_fields = ['cf_choice', 'reason_order']
@@ -718,7 +723,13 @@ class Reasons(Page):
             pref_first = 'Charity Video'
         else:
             pref_first = None  # no preference: the page asks a different question 2
-        return dict(first=video_name(player, 1), second=video_name(player, 2), pref_first=pref_first)
+        return dict(first=video_name(player, 1), second=video_name(player, 2), pref_first=pref_first) #imp-order for first and second
+    #and pref_order for pref_first
+
+#Donation behaviour page
+class Donation_behaviourq(Page):
+    form_model = 'player'
+    form_fields = ['donationq','donationqother','charityq','knowstc']
 
 
 # Feedback questions; the payment is computed here so that it is fixed before the Back page is shown
@@ -780,6 +791,7 @@ page_sequence = [
     Emotions,
     Temptation,
     Reasons,
+    Donation_behaviourq,
     Feedback,
     Back
 ]

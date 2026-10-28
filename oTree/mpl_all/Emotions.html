@@ -34,18 +34,6 @@
             {{ endfor }}
         </table>
 
-        <div class="slider-q" style="margin-top: 2.5rem; text-align: center;">
-            <label class="col-form-label"><b>Before</b> watching the <b>{{ v.name }}</b>, to what extent did you
-            <b>expect</b> to feel the emotions you reported above?</label>
-            <div class="slider-row" style="margin: 0 auto;">
-                <span class="end">0<br>not at all</span>
-                <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="{{ v.ant }}">
-                <span class="end">100<br>very much</span>
-            </div>
-            <div class="slider-value" id="value_{{ v.ant }}" style="margin: 4px auto 0;">Click on the scale to give your answer.</div>
-            <div class="slider-missing" id="missing_{{ v.ant }}" style="margin: 0 auto;">Please give an answer to this question.</div>
-            <input type="hidden" name="{{ v.ant }}" id="hidden_{{ v.ant }}">
-        </div>
     </div>
 </div>
 {{ endfor }}
