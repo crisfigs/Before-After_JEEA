@@ -213,8 +213,8 @@ class Player(BasePlayer):
     paid_row = models.IntegerField()     # row drawn at random
     paid_option = models.IntegerField()  # 1 or 2: option chosen in that row
     imp_order = models.StringField()     # 'AltEmot' or 'EmotAlt': order implemented
-    bonus = models.FloatField()          # bonus in £ from the drawn row
-
+    bonus_mpl = models.FloatField()      # bonus in £ from the drawn row of the decision table
+    
     # Unincentivised WTP question (asked after the decisions, before the result is shown)
     pref_order = models.IntegerField(
         label="Which order would you prefer?",
@@ -255,12 +255,11 @@ class Player(BasePlayer):
     q_feedback_pilot = models.LongStringField(label="Was anything in the instructions unclear or confusing?", blank=True)
 
     # Payment
-    payment_number = models.IntegerField()   # 1 with prob 20%: the Option A/B choice is paid out
-    payment = models.FloatField()            # £ from the Option A/B choice: 5 (A) or 1 (B) if selected, else 0
-    donation = models.FloatField()           # £ to Save the Children: 8 if selected and B, else 0
-    total_payment = models.FloatField()      # payment + bonus from the selected row of the decision table
-                                             # (the guessing bonus is added after the study)
-
+    payment_number = models.IntegerField()               # 1 with prob 20%: the Option A/B choice is paid out
+    bonus_donation_participant = models.FloatField()     # £ to the participant from the A/B choice: 5 (A) or 1 (B) if selected, else 0
+    bonus_donation_charity = models.FloatField()         # £ to Save the Children: 8 if selected and B, else 0
+    total_payment = models.FloatField()                  # bonus_donation_participant + bonus_mpl
+                                                            # (the guessing bonus is added after the study)
     # ---- Exit survey ----
     # Question texts are written in the templates (so parts can be bold); labels here are for the data
     # Experienced emotions, Charity Video (1 = very weak, 5 = very high)
@@ -281,7 +280,6 @@ class Player(BasePlayer):
     compassion_alt = make_emotion("Compassion")
     guilt_alt = make_emotion("Guilt")
     boredom_alt = make_emotion("Boredom")
-    emo_order = models.StringField()   # order in which the emotions were shown (same for both videos), e.g. 'guilt,happy,...'
 
     # Temptation, per video (0 = not at all, 100 = very much)
     tempt_donate_charity = make_slider("Tempted to donate while watching the Charity Video")
@@ -466,9 +464,9 @@ class TimingDecision_MPL(Page):
         choices = [getattr(player, 'choice_' + str(k)) for k in range(1, C.NUM_ROWS + 1)]
 
         # Switching pattern of the final choices
-        n_1 = choices.count(1)
-        player.consistent = choices == [1] * n_1 + [2] * (C.NUM_ROWS - n_1)
-        player.num_switches = sum(choices[k] != choices[k + 1] for k in range(C.NUM_ROWS - 1))
+        n_1 = choices.count(1)                #how many elements of the list choices are equal to 1
+        player.consistent = choices == [1] * n_1 + [2] * (C.NUM_ROWS - n_1)           #[1] * n_1 + [2] * (C.NUM_ROWS - n_1) builds the only consistent pattern with that many 1s: all the 1s first, then all 2s. With 5 rows and n_1 = 3, that gives [1, 1, 1, 2, 2]
+        player.num_switches = sum(choices[k] != choices[k + 1] for k in range(C.NUM_ROWS - 1))  #how many times the participant changes option between consecutive rows.
 
         # Draw one row (rows 1 and 11 more likely) and implement the choice made in it
         player.paid_row = random.choices(range(1, C.NUM_ROWS + 1), weights=C.ROW_WEIGHTS)[0]
@@ -488,13 +486,13 @@ class TimingDecision_MPL(Page):
 
         # Bonus belongs to the column, not to the order: Option 1 has bonuses in rows 1-5, Option 2 in rows 7-11
         if player.paid_option == 1:
-            player.bonus = C.BONUS_1[player.paid_row - 1]
+            player.bonus_mpl = C.BONUS_1[player.paid_row - 1]
         else:
-            player.bonus = C.BONUS_2[player.paid_row - 1]
+            player.bonus_mpl = C.BONUS_2[player.paid_row - 1]
 
         # Store for later apps
         player.participant.vars['imp_order'] = player.imp_order
-        player.participant.vars['mpl_bonus'] = player.bonus
+        player.participant.vars['mpl_bonus'] = player.bonus_mpl
 
 
 class WTP(Page):
@@ -521,7 +519,7 @@ class Results(Page):
         choices = [getattr(player, 'choice_' + str(k)) for k in range(1, C.NUM_ROWS + 1)]
         selected_row = example_rows(player, choices, [player.paid_row])[player.paid_row - 1]
 
-        return dict(received=label, order=order, bonus_text=money(player.bonus), selected_row=selected_row)
+        return dict(received=label, order=order, bonus_text=money(player.bonus_mpl), selected_row=selected_row)
     # Example. Take mpl_option1 = 'EmotAlt', choices [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2] and
     # paid_row = 11, so paid_option = 2, imp_order = 'AltEmot' and bonus = 1.00. It returns:
     # dict(
@@ -656,7 +654,6 @@ def video_suffix(player: Player, k):
 
 # Random order of the emotions, drawn once per participant and kept the same for both videos.
 # Kept in participant.vars so the order stays the same if the page is reloaded;
-# saved to player.emo_order (for the data) when the Emotions page is submitted.
 def emotion_order(player: Player):
     if 'emo_order' not in player.participant.vars:
         order = EMOTIONS.copy()
@@ -692,10 +689,10 @@ class Emotions(Page):
         #          rows=[dict(field='guilt_alt', label='Guilt'), dict(field='happy_alt', label='Happiness'), ...]),
         # ]
 
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        # Save the displayed order of the emotions to the data
-        player.emo_order = ','.join(emotion_order(player))
+
+
+
+
 
 
 # Experienced and anticipated temptation to donate, one block per video (in the order watched)
@@ -762,16 +759,16 @@ class Feedback(Page):
     def before_next_page(player: Player, timeout_happened):
         player.payment_number = random.choices([1, 0], weights=(20, 80), k=1)[0]   # 1 in 5
         if player.payment_number == 1 and player.task1 == 'A':
-            player.payment = 5
-            player.donation = 0
+            player.bonus_donation_participant = 5
+            player.bonus_donation_charity = 0
         elif player.payment_number == 1 and player.task1 == 'B':
-            player.payment = 1
-            player.donation = 8
+            player.bonus_donation_participant = 1
+            player.bonus_donation_charity = 8
         else:
-            player.payment = 0
-            player.donation = 0
+            player.bonus_donation_participant = 0
+            player.bonus_donation_charity = 0
         # The total payment without including the incentivized beliefs
-        player.total_payment = player.payment + player.bonus
+        player.total_payment = player.bonus_donation_participant + player.bonus_mpl
 
 
 # Payment summary and the link back to Prolific (no Next button)
@@ -784,10 +781,10 @@ class Back(Page):
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
-            payment_text=money(player.payment),
-            bonus_text=money(player.bonus),
+            payment_text=money(player.bonus_donation_participant),
+            bonus_text=money(player.bonus_mpl),
             total_text=money(player.total_payment),
-            has_bonus=player.bonus > 0,
+            has_bonus=player.bonus_mpl > 0,
             belief_pence=round(C.BELIEF_PRIZE * 100),
         )
 
