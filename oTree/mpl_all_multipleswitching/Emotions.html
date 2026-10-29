@@ -1,0 +1,39 @@
+{{ block title }}Part 3: Final Survey - Emotions{{ endblock }}
+
+{{ block content }}
+
+{{ for v in videos }}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h5>The {{ v.position }} video: <b>{{ v.name }}</b></h5>
+        <p>How did you feel while watching the <b>{{ v.name }}</b>?
+        Please rate how intensely you experienced each emotion.</p>
+
+        <table class="table table-striped">
+            <tr>
+                <th></th>
+                <th style="text-align:center;">Very weak</th>
+                <th style="text-align:center;">Mild</th>
+                <th style="text-align:center;">Moderate</th>
+                <th style="text-align:center;">High</th>
+                <th style="text-align:center;">Very high</th>
+            </tr>
+            {{ for r in v.rows }}
+            <tr>
+                <th>{{ r.label }}</th>
+                <td style="text-align:center;"><input type="radio" class="form-check-input" name="{{ r.field }}" value="1" required></td>
+                <td style="text-align:center;"><input type="radio" class="form-check-input" name="{{ r.field }}" value="2"></td>
+                <td style="text-align:center;"><input type="radio" class="form-check-input" name="{{ r.field }}" value="3"></td>
+                <td style="text-align:center;"><input type="radio" class="form-check-input" name="{{ r.field }}" value="4"></td>
+                <td style="text-align:center;"><input type="radio" class="form-check-input" name="{{ r.field }}" value="5"></td>
+            </tr>
+            {{ endfor }}
+        </table>
+
+    </div>
+</div>
+{{ endfor }}
+
+<div class="next-right">{{ next_button }}</div>
+
+{{ endblock }}

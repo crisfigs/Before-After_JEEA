@@ -1,0 +1,59 @@
+{{ block title }}
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    #vid {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        min-width: 100%;
+        min-height: 100%;
+        background: #000;
+        z-index: 1;
+    }
+    #show {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;              /* above the video */
+        border-radius: 12px;
+        border: none;
+        color: white;
+        background-color: orange;
+        padding: 20px;
+        font-size: 16px;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<!-- No controls: the video cannot be paused, skipped or scrubbed. The NEXT button appears only when it has ended. -->
+<video id="vid" playsinline autoplay disablepictureinpicture>
+    <source src="{{ video_link }}" type="video/mp4">
+</video>
+
+<button id="show" style="visibility: hidden;">NEXT</button>
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    var video = document.getElementById("vid");
+    video.disablePictureInPicture = true;   // no picture-in-picture
+
+    // Show the NEXT button once the video has ended
+    video.addEventListener("ended", function () {
+        document.getElementById("show").style.visibility = "visible";
+    });
+
+    // If the browser blocked autoplay, start the video when the participant clicks anywhere on the screen
+    document.addEventListener("click", function (e) {
+        if (e.target.id !== "show" && video.paused && !video.ended) {
+            video.play();
+        }
+    });
+</script>
+{{ endblock }}

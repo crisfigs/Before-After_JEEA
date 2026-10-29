@@ -1,0 +1,137 @@
+{{ block title }}
+    Video Order Decision
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .mpl-table thead th {
+        background-color: #008CBA;
+        color: white;
+    }
+    .mpl-table input[type="radio"] {
+        accent-color: #008CBA;
+        transform: scale(1.4);
+        margin: 0 4px;
+        cursor: pointer;
+    }
+    /* rows where the participant goes from Option 2 back to Option 1 (marked after the first click on Next) */
+    .mpl-table tr.switch-back td {
+        background-color: #FFF3CD !important;
+        font-weight: bold;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<div class="alert alert-success">You have answered the comprehension questions correctly.</div>
+
+<!-- Hint, shown once by the script below if the table goes from Option 2 back to Option 1 somewhere -->
+<div class="alert alert-warning" id="switch_hint" style="display:none;">
+    <p>Please take another look at the highlighted decisions in your table.</p>
+    <p style="margin-bottom:0;">Remember: going down the table, the bonus for Option 1 gets smaller and the bonus
+    for Option 2 gets larger. So if you choose Option 2 in one decision, Option 2 becomes even more attractive
+    in the decisions below it. And if you choose Option 1 in one decision, Option 1 is even more attractive
+    in the decisions above it.</p>
+</div>
+
+<div class="card"><div class="card-body">
+
+    <p>Please make your decisions now by selecting your preferred option in each row of the table.</p>
+
+    <table class="table table-striped mpl-table">
+        <thead>
+            <tr>
+                <th>Decision</th>
+                <th>Option 1</th>
+                <th style="text-align:center;">Your choice</th>
+                <th>Option 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ for row in rows }}
+            <tr id="row_{{ row.number }}">
+                <td>{{ row.number }}</td>
+                <td>{{ row.option_1 }}</td>
+                <td style="text-align:center; white-space:nowrap;">
+                    <label><input type="radio" name="{{ row.field }}" value="1" required> 1</label>
+                    &nbsp;&nbsp;
+                    <label><input type="radio" name="{{ row.field }}" value="2" required> 2</label>
+                </td>
+                <td>{{ row.option_2 }}</td>
+            </tr>
+            {{ endfor }}
+        </tbody>
+    </table>
+
+    <p><i>Please choose one option in each row.</i></p>
+
+    <!-- Filled in by the script below -->
+    <input type="hidden" name="mpl_warned" id="mpl_warned" value="0">
+    <input type="hidden" name="mpl_first_try" id="mpl_first_try" value="">
+
+</div></div>
+
+<br>
+<div style="text-align:center">{{ next_button }}</div>
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    var numRows = {{ C.NUM_ROWS }};
+    var form = document.getElementById('form') || document.querySelector('form');
+
+    // Restore what the server already knows (matters only if the page is reloaded after the first click on Next)
+    document.getElementById('mpl_warned').value = js_vars.warned;
+    document.getElementById('mpl_first_try').value = js_vars.first_try;
+
+    // Current choices as a string, e.g. '11122222222' (one digit per row)
+    function pattern() {
+        var s = '';
+        for (var i = 1; i <= numRows; i++) {
+            s += document.querySelector('input[name="choice_' + i + '"]:checked').value;
+        }
+        return s;
+    }
+
+    // Remove the highlighting as soon as the participant changes a choice
+    document.addEventListener('change', function (e) {
+        if (e.target.type !== 'radio') return;
+        document.querySelectorAll('tr.switch-back').forEach(function (r) { r.classList.remove('switch-back'); });
+    });
+
+    // Runs only after the browser has checked that every row is answered
+    form.addEventListener('submit', function (e) {
+        var p = pattern();
+
+        // Record the choices at the first click on Next
+        if (document.getElementById('mpl_first_try').value === '') {
+            document.getElementById('mpl_first_try').value = p;
+        }
+
+        // Consistent = all 1's before all 2's. If not, and no hint shown yet: stop, mark the rows, show the hint once
+        var consistent = /^1*2*$/.test(p);
+        if (!consistent && document.getElementById('mpl_warned').value === '0') {
+            e.preventDefault();
+            document.getElementById('mpl_warned').value = '1';
+
+            // Highlight each pair of rows where Option 2 is followed by Option 1
+            for (var k = 1; k < numRows; k++) {
+                if (p[k - 1] === '2' && p[k] === '1') {
+                    document.getElementById('row_' + k).classList.add('switch-back');
+                    document.getElementById('row_' + (k + 1)).classList.add('switch-back');
+                }
+            }
+
+            document.getElementById('switch_hint').style.display = 'block';
+            // Save on the server right away, so a reload keeps the first table and the fact that the hint was shown
+            liveSend({first_try: document.getElementById('mpl_first_try').value, warned: 1});
+            // oTree disables Next right after it is clicked; switch it back on
+            setTimeout(function () {
+                document.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+            }, 100);
+            window.scrollTo(0, 0);
+        }
+    });
+</script>
+{{ endblock }}

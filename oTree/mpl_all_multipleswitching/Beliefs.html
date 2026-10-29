@@ -1,0 +1,155 @@
+{{ block title }}
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .belief-q {
+        margin-bottom: 1.25rem;
+    }
+    .belief-q input[type="number"] {
+        max-width: 160px;
+    }
+    .number-msg {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 4px;
+        display: none;
+    }
+    .pay-box {
+        margin: 5px 0 25px;
+        font-size: 0.875em;
+    }
+    /* small pill marking the questions that can earn a bonus */
+    .bonus-tag {
+        display: inline-block;
+        background-color: #FFF3CD;
+        color: #7A5B00;
+        border: 1px solid #E6C65C;
+        border-radius: 999px;
+        padding: 1px 9px;
+        margin-right: 6px;
+        font-size: 0.8em;
+        font-weight: bold;
+        white-space: nowrap;
+        vertical-align: 1px;
+    }
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .nav-buttons > *, .nav-buttons button {
+        margin: 0 !important;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<h2>Your expectations</h2>
+
+<div class="card"><div class="card-body">
+
+    <p>Before you make your decisions on the order of the videos and between Option A (you: £5, charity: £0) and
+    Option B (you: £1, charity: £8), we would like to ask you some questions.</p>
+
+    <!-- Beliefs about others: incentivized. Question text written here (not as field labels) so parts can be bold. -->
+    <div class="belief-q">
+        <label class="col-form-label" for="id_belief_others_charity">
+            <span class="bonus-tag">£ Bonus</span>
+            1. Of 100 participants who <b>watch the Charity Video first</b>, how many do you think will donate, i.e. choose Option B (you: £1, charity: £8)?
+        </label>
+        <input type="number" class="form-control" name="belief_others_charity" id="id_belief_others_charity"
+               min="0" max="100" step="1" inputmode="numeric" required>
+        <div class="number-msg" id="msg_belief_others_charity">Please enter a whole number between 0 and 100.</div>
+        {{ formfield_errors 'belief_others_charity' }}
+    </div>
+
+    <div class="belief-q">
+        <label class="col-form-label" for="id_belief_others_alt">
+            <span class="bonus-tag">£ Bonus</span>
+            2. Of 100 participants who <b>watch the Alternative Video first</b>, how many do you think will donate, i.e. choose Option B (you: £1, charity: £8)?
+        </label>
+        <input type="number" class="form-control" name="belief_others_alt" id="id_belief_others_alt"
+               min="0" max="100" step="1" inputmode="numeric" required>
+        <div class="number-msg" id="msg_belief_others_alt">Please enter a whole number between 0 and 100.</div>
+        {{ formfield_errors 'belief_others_alt' }}
+    </div>
+
+    <div class="pay-box">
+        <span class="bonus-tag">£ Bonus</span>
+        Guesses within &plusmn;{{ C.BELIEF_TOL }} of the actually observed proportion in this study (calculated when the study is complete) get a <b>{{ belief_pence }} pence</b> bonus in these questions.
+    </div>
+
+    <!-- Beliefs about oneself: not incentivized. Binary: 0 = Option A, 1 = Option B; no option preselected -->
+    <div class="belief-q">
+        <label class="col-form-label">
+            3. If you <b>watch the Charity Video first</b>, which option do you think you are most likely to choose?
+        </label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_charity" id="id_belief_self_charity_0" value="0" required>
+            <label class="form-check-label" for="id_belief_self_charity_0">Option A (you: £5, charity: £0)</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_charity" id="id_belief_self_charity_1" value="1">
+            <label class="form-check-label" for="id_belief_self_charity_1">Option B (you: £1, charity: £8)</label>
+        </div>
+        {{ formfield_errors 'belief_self_charity' }}
+    </div>
+
+    <div class="belief-q">
+        <label class="col-form-label">
+            4. If you <b>watch the Alternative Video first</b>, which option do you think you are most likely to choose?
+        </label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_alt" id="id_belief_self_alt_0" value="0" required>
+            <label class="form-check-label" for="id_belief_self_alt_0">Option A (you: £5, charity: £0)</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="belief_self_alt" id="id_belief_self_alt_1" value="1">
+            <label class="form-check-label" for="id_belief_self_alt_1">Option B (you: £1, charity: £8)</label>
+        </div>
+        {{ formfield_errors 'belief_self_alt' }}
+    </div>
+<input  style="opacity: 0"  id="honeypot" name="honeypot">
+
+</div></div>
+
+<br>
+<div class="nav-buttons">
+    <span></span>
+    {{ next_button }}
+</div>
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    // Questions 1 and 2: only whole numbers from 0 to 100.
+    // Any key that is not a digit (letters, e, +, -, decimal point, ...) is blocked and a short message is shown.
+    document.querySelectorAll('.belief-q input[type="number"]').forEach(function (el) {
+        var msg = document.getElementById('msg_' + el.name);
+        var timer = null;
+        function valueOk() {
+            // empty, or digits only with a value of at most 100 (also catches pasted text)
+            return el.validity.valid && /^[0-9]*$/.test(el.value) && (el.value === '' || Number(el.value) <= 100);
+        }
+        function check() {
+            msg.style.display = valueOk() ? 'none' : 'block';
+        }
+        el.addEventListener('keydown', function (e) {
+            // let through control keys (Backspace, Tab, arrows, ...) and shortcuts (Ctrl/Cmd + C, V, ...)
+            if (e.key.length > 1 || e.ctrlKey || e.metaKey) return;
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+                msg.style.display = 'block';
+                // hide the warning again after a few seconds if what is in the box is fine
+                clearTimeout(timer);
+                timer = setTimeout(check, 2500);
+            }
+        });
+        el.addEventListener('input', check);
+        el.addEventListener('blur', check);
+    });
+</script>
+{{ endblock }}

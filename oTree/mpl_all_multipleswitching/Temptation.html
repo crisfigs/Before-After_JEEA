@@ -1,0 +1,56 @@
+{{ block title }}Part 3: Final Survey - Temptation to donate{{ endblock }}
+
+{{ block styles }}
+<link rel="stylesheet" href="{{ static 'slider.css' }}">
+{{ endblock }}
+
+{{ block content }}
+
+<p>Please answer each question by clicking on the scale. Donating means choosing Option B (you: £1, charity: £8);
+keeping the money means choosing Option A (you: £5, charity: £0).</p>
+
+{{ for v in videos }}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h5>The {{ v.position }} video: <b>{{ v.name }}</b></h5>
+        <br>
+
+        <div class="slider-q">
+            <label class="col-form-label"><b>Before</b> watching the <b>{{ v.name }}</b>, how
+            <b>tempted to donate</b> did you <b>expect</b> to feel?</label>
+            <div class="slider-row">
+                <span class="end">0<br>not at all</span>
+                <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="{{ v.ant_donate }}">
+                <span class="end">100<br>very much</span>
+            </div>
+            <div class="slider-value" id="value_{{ v.ant_donate }}">Click on the scale to give your answer.</div>
+            <div class="slider-missing" id="missing_{{ v.ant_donate }}">Please give an answer to this question.</div>
+            <input type="hidden" name="{{ v.ant_donate }}" id="hidden_{{ v.ant_donate }}">
+        </div>
+
+
+
+        <div class="slider-q">
+            <label class="col-form-label">While watching the <b>{{ v.name }}</b>, how
+            <b>tempted to donate</b> did you feel?</label>
+            <div class="slider-row">
+                <span class="end">0<br>not at all</span>
+                <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="{{ v.donate }}">
+                <span class="end">100<br>very much</span>
+            </div>
+            <div class="slider-value" id="value_{{ v.donate }}">Click on the scale to give your answer.</div>
+            <div class="slider-missing" id="missing_{{ v.donate }}">Please give an answer to this question.</div>
+            <input type="hidden" name="{{ v.donate }}" id="hidden_{{ v.donate }}">
+        </div>
+
+    </div>
+</div>
+{{ endfor }}
+
+<div class="next-right">{{ next_button }}</div>
+
+{{ endblock }}
+
+{{ block scripts }}
+<script src="{{ static 'slider.js' }}"></script>
+{{ endblock }}

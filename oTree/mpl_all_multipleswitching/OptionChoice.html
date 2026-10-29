@@ -1,0 +1,52 @@
+{{ block title }}
+    Part 2: Option A or Option B
+{{ endblock }}
+
+{{ block styles }}
+<style>
+    .choice-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+</style>
+{{ endblock }}
+
+{{ block content }}
+
+<div class="card">
+    <div class="card-body">
+        <p>Please choose one of the two options:</p>
+
+        <ul>
+            <li><b>Option A</b>: you keep the &pound;5 earned in Part 1 and no donation is made to "Save the Children".</li>
+            <li><b>Option B</b>: you keep &pound;1 from your earnings in Part 1 and &pound;8 are donated to "Save the Children".</li>
+        </ul>
+
+        <p style="text-align:center">Make your choice here:</p>
+
+        <!-- Each button submits the page with its value (A or B) -->
+        <div class="choice-buttons">
+            <button name="task1" value="A" class="btn btn-outline-primary btn-lg">Select option A</button>
+            <button name="task1" value="B" class="btn btn-outline-primary btn-lg">Select option B</button>
+        </div>
+
+        <!-- seconds spent on this page, filled in by the timer below -->
+        <input type="hidden" name="time_choice" id="timeSpent" value="0">
+    </div>
+</div>
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    // Count the seconds spent on this page and store them in the hidden field
+    var pageTimeElapsed = 0;
+    setInterval(function () {
+        pageTimeElapsed++;
+        document.getElementById("timeSpent").value = pageTimeElapsed;
+    }, 1000);
+</script>
+{{ endblock }}
