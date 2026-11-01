@@ -175,6 +175,7 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect,
         label="If you watch the Alternative Video first, which option are you most likely to choose?",
     )
+
     #honepot, hidden input field that only a bot would see and fill
     honeypot = models.StringField(blank=True)
 

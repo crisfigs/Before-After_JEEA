@@ -171,17 +171,11 @@ class Player(BasePlayer):
         min=0, max=100,
         label="Of 100 participants who watch the Alternative Video first, how many do you think will donate (choose Option B)?",
     )
-    # (b) about oneself, binary "most likely" action; not incentivized (0 = Option A, 1 = Option B)
-    belief_self_charity = models.IntegerField(
-        choices=[[0, 'Option A (you: £5, charity: £0)'], [1, 'Option B (you: £1, charity: £8)']],
-        widget=widgets.RadioSelect,
-        label="If you watch the Charity Video first, which option are you most likely to choose?",
-    )
-    belief_self_alt = models.IntegerField(
-        choices=[[0, 'Option A (you: £5, charity: £0)'], [1, 'Option B (you: £1, charity: £8)']],
-        widget=widgets.RadioSelect,
-        label="If you watch the Alternative Video first, which option are you most likely to choose?",
-    )
+    # (b) about oneself, likelihood of donating on a 0-100 slider; not incentivized
+    #     (0 = certainly not, 100 = certainly; blank=True so Beliefs.error_message can catch an untouched slider)
+    belief_self_charity = make_slider("If you watch the Charity Video first, how likely is it that you will donate, i.e. choose Option B (you: £1, charity: £8)?")
+    belief_self_alt = make_slider("If you watch the Alternative Video first, how likely is it that you will donate, i.e. choose Option B (you: £1, charity: £8)?")
+
     # Honeypot: hidden input field that only a bot would see and fill
     honeypot = models.StringField(blank=True)
 
@@ -282,10 +276,15 @@ class Player(BasePlayer):
     boredom_alt = make_emotion("Boredom")
 
     # Temptation, per video (0 = not at all, 100 = very much)
+    # Experienced: asked in the exit survey (Temptation page)
     tempt_donate_charity = make_slider("Tempted to donate while watching the Charity Video")
-    ant_tempt_donate_charity = make_slider("Expected to be tempted to donate, Charity Video")
     tempt_donate_alt = make_slider("Tempted to donate while watching the Alternative Video")
-    ant_tempt_donate_alt = make_slider("Expected to be tempted to donate, Alternative Video")
+    # Anticipated: asked on the Beliefs page, before the decision table and before any video
+    ant_tempt_donate_charity = make_slider(
+        "Expected to be tempted to donate while watching the Charity Video (asked before any video)")
+    ant_tempt_donate_alt = make_slider(
+        "Expected to be tempted to donate while watching the Alternative Video (asked before any video)")
+
 
     # Counterfactual: A/B choice had the implemented order been reversed
     cf_choice = models.StringField(
@@ -394,21 +393,28 @@ class DInstructions(Page):
         return dict(opt1_alt=alt_is_opt1(player), label_1=label_1, label_2=label_2)
 
 
-# Beliefs about others (incentivized) and about oneself (not incentivized), before any video.
+# Beliefs about others (incentivized), about oneself and anticipated temptation (not incentivized), before any video.
 class Beliefs(Page):
     form_model = 'player'
-    form_fields = ['belief_others_charity', 'belief_others_alt', 'belief_self_charity', 'belief_self_alt', 'honeypot']
+    form_fields = ['belief_others_charity', 'belief_others_alt', 'belief_self_charity', 'belief_self_alt',
+                   'ant_tempt_donate_charity', 'ant_tempt_donate_alt', 'honeypot']
 
     @staticmethod
     def vars_for_template(player: Player):
         return dict(belief_pence=round(C.BELIEF_PRIZE * 100))   # e.g. 10 (pence)
 
     @staticmethod
+    def error_message(player: Player, values):
+        # Server-side backup; slider.js already blocks submitting with an untouched slider
+        for f in ['belief_self_charity', 'belief_self_alt', 'ant_tempt_donate_charity', 'ant_tempt_donate_alt']:
+            if values[f] is None:
+                return 'Please answer every question by clicking on the scale.'
+
+    @staticmethod
     def before_next_page(player: Player, timeout_happened):
         # Belief payment is computed after the study, once the realized rates are known
         for f in Beliefs.form_fields:
             player.participant.vars[f] = getattr(player, f)
-
 
 # One oTree page with two screens (Instructions 2/2, Comprehension check).
 # Back/Next between the screens happen in the browser; the page is only submitted
@@ -698,14 +704,13 @@ class Emotions(Page):
 # Experienced and anticipated temptation to donate, one block per video (in the order watched)
 class Temptation(Page):
     form_model = 'player'
-    # The 4 sliders on this page (their order here does not matter)
-    form_fields = ['tempt_donate_charity', 'ant_tempt_donate_charity',
-                   'tempt_donate_alt', 'ant_tempt_donate_alt']
+    # The 2 sliders on this page (their order here does not matter)
+    form_fields = ['tempt_donate_charity', 'tempt_donate_alt']
 
     @staticmethod
     def vars_for_template(player: Player):
-        # One block per video, in the order watched. For each video, the template gets the names of
-        # the two fields its sliders save to: experienced (donate) and anticipated (ant_donate) temptation.
+        # One block per video, in the order watched. For each video, the template gets the name of
+        # the field its slider saves to (experienced temptation).
         videos = []
         for k, position in [(1, 'first'), (2, 'second')]:
             s = video_suffix(player, k)
@@ -713,16 +718,8 @@ class Temptation(Page):
                 name=video_name(player, k),
                 position=position,
                 donate='tempt_donate' + s,
-                ant_donate='ant_tempt_donate' + s,
             ))
         return dict(videos=videos)
-
-    @staticmethod
-    def error_message(player: Player, values):
-        # Server-side backup; slider.js already blocks submitting with an empty slider
-        for f in Temptation.form_fields:
-            if values[f] is None:
-                return 'Please answer every question by clicking on the scale.'
 
 
 # Counterfactual (relative to the implemented order) and reason for the preferred order (as per the WTP page)

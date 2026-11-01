@@ -2,7 +2,9 @@
 {{ endblock }}
 
 {{ block styles }}
+<link rel="stylesheet" href="{{ static 'slider.css' }}">
 <style>
+
     .belief-q {
         margin-bottom: 1.25rem;
     }
@@ -81,35 +83,66 @@
         Guesses within &plusmn;{{ C.BELIEF_TOL }} of the actually observed proportion in this study (calculated when the study is complete) get a <b>{{ belief_pence }} pence</b> bonus in these questions.
     </div>
 
-    <!-- Beliefs about oneself: not incentivized. Binary: 0 = Option A, 1 = Option B; no option preselected -->
-    <div class="belief-q">
+        <!-- Beliefs about oneself: not incentivized. 0-100 slider (0 = certainly not, 100 = certainly); untouched until clicked -->
+    <div class="slider-q belief-q">
         <label class="col-form-label">
-            3. If you <b>watch the Charity Video first</b>, which option do you think you are most likely to choose?
+            3. If you <b>watch the Charity Video first</b>, how likely is it that you will donate, i.e. choose Option B (you: £1, charity: £8)?
         </label>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="belief_self_charity" id="id_belief_self_charity_0" value="0" required>
-            <label class="form-check-label" for="id_belief_self_charity_0">Option A (you: £5, charity: £0)</label>
+        <div class="slider-row">
+            <span class="end">0<br>Certainly not</span>
+            <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="belief_self_charity">
+            <span class="end">100<br>Certainly</span>
         </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="belief_self_charity" id="id_belief_self_charity_1" value="1">
-            <label class="form-check-label" for="id_belief_self_charity_1">Option B (you: £1, charity: £8)</label>
-        </div>
+        <div class="slider-value" id="value_belief_self_charity">Click on the scale to give your answer.</div>
+        <div class="slider-missing" id="missing_belief_self_charity">Please give an answer to this question.</div>
+        <input type="hidden" name="belief_self_charity" id="hidden_belief_self_charity">
         {{ formfield_errors 'belief_self_charity' }}
     </div>
 
-    <div class="belief-q">
+    <div class="slider-q belief-q">
         <label class="col-form-label">
-            4. If you <b>watch the Alternative Video first</b>, which option do you think you are most likely to choose?
+            4. If you <b>watch the Alternative Video first</b>, how likely is it that you will donate, i.e. choose Option B (you: £1, charity: £8)?
         </label>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="belief_self_alt" id="id_belief_self_alt_0" value="0" required>
-            <label class="form-check-label" for="id_belief_self_alt_0">Option A (you: £5, charity: £0)</label>
+        <div class="slider-row">
+            <span class="end">0<br>Certainly not</span>
+            <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="belief_self_alt">
+            <span class="end">100<br>Certainly</span>
         </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="belief_self_alt" id="id_belief_self_alt_1" value="1">
-            <label class="form-check-label" for="id_belief_self_alt_1">Option B (you: £1, charity: £8)</label>
-        </div>
+        <div class="slider-value" id="value_belief_self_alt">Click on the scale to give your answer.</div>
+        <div class="slider-missing" id="missing_belief_self_alt">Please give an answer to this question.</div>
+        <input type="hidden" name="belief_self_alt" id="hidden_belief_self_alt">
         {{ formfield_errors 'belief_self_alt' }}
+    </div>
+
+    <!-- Anticipated temptation: not incentivized. 0-100 slider (0 = not at all, 100 = very much) -->
+    <div class="slider-q belief-q">
+        <label class="col-form-label">
+            5. If you <b>watch the Charity Video first</b>, how <b>tempted</b> do you <b>expect</b> to feel <b>to donate</b>, i.e. choose Option B (you: £1, charity: £8), while watching it?
+        </label>        </label>
+        <div class="slider-row">
+            <span class="end">0<br>Not at all</span>
+            <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="ant_tempt_donate_charity">
+            <span class="end">100<br>Very much</span>
+        </div>
+        <div class="slider-value" id="value_ant_tempt_donate_charity">Click on the scale to give your answer.</div>
+        <div class="slider-missing" id="missing_ant_tempt_donate_charity">Please give an answer to this question.</div>
+        <input type="hidden" name="ant_tempt_donate_charity" id="hidden_ant_tempt_donate_charity">
+        {{ formfield_errors 'ant_tempt_donate_charity' }}
+    </div>
+
+    <div class="slider-q belief-q">
+        <label class="col-form-label">
+            6. If you <b>watch the Alternative Video first</b>, how <b>tempted</b> do you <b>expect</b> to feel <b>to donate</b>, i.e. choose Option B (you: £1, charity: £8), while watching it?
+        </label>
+        <div class="slider-row">
+            <span class="end">0<br>Not at all</span>
+            <input type="range" class="survey-slider untouched" min="0" max="100" step="1" value="50" data-field="ant_tempt_donate_alt">
+            <span class="end">100<br>Very much</span>
+        </div>
+        <div class="slider-value" id="value_ant_tempt_donate_alt">Click on the scale to give your answer.</div>
+        <div class="slider-missing" id="missing_ant_tempt_donate_alt">Please give an answer to this question.</div>
+        <input type="hidden" name="ant_tempt_donate_alt" id="hidden_ant_tempt_donate_alt">
+        {{ formfield_errors 'ant_tempt_donate_alt' }}
     </div>
 <input  style="opacity: 0"  id="honeypot" name="honeypot">
 
@@ -152,4 +185,7 @@
         el.addEventListener('blur', check);
     });
 </script>
+
+<!-- Sliders (questions 3-6): same script as the Temptation page -->
+<script src="{{ static 'slider.js' }}"></script>
 {{ endblock }}
