@@ -572,8 +572,7 @@ def video_vars(player: Player, k):
 
 
 class VideoAlert1(Page):
-    template_name = 'mpl_all/VideoAlert.html'
-
+    template_name = 'mpl_multipleswitching/VideoAlert.html'
     @staticmethod
     def vars_for_template(player: Player):
         return dict(position='first', name=video_name(player, 1),
@@ -582,8 +581,7 @@ class VideoAlert1(Page):
 
 
 class VideoAlert2(Page):
-    template_name = 'mpl_all/VideoAlert.html'
-
+    template_name = 'mpl_multipleswitching/VideoAlert.html'
     @staticmethod
     def vars_for_template(player: Player):
         return dict(position='second', name=video_name(player, 2),
