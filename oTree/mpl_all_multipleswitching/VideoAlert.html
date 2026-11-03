@@ -4,9 +4,11 @@
 {{ block content }}
 
 <div class="alert alert-warning text-center lead">
-    <h4>You will see a video in the next page. If the video does not start immediately, please click ANYWHERE on your screen to start it.</h4>
-    <br><br>
-    Click next to proceed.
+    <h4>On the next page you will watch the {{ position }} video: the {{ name }}.</h4>
+    <p>{{ next_step }}</p>
+    <p>After both videos, we will ask you a few questions about them, so please watch carefully.</p>
+    <p>On the next page, click the <b>Start</b> button to begin the video. The video cannot be paused,
+    and a NEXT button appears when it has ended.</p>
 </div>
 
 <div style="text-align:center">{{ next_button }}</div>

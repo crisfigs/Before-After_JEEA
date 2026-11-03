@@ -55,7 +55,7 @@
 
     <div class="card"><div class="card-body">
 
-        <p>To choose between the two orders, you will fill in a short table with {{ C.NUM_ROWS }} rows.
+       <!--  <p>To choose between the two orders, you will fill in a short table with {{ C.NUM_ROWS }} rows.
         Each row is one decision, in which you choose one of the two orders.
         The only difference between the {{ C.NUM_ROWS }} decisions is for which order you receive a bonus payment,
         and how high this bonus payment is.</p>
@@ -67,7 +67,18 @@
 
 
 
-        <p>Notice that since each of your decisions can be selected, you should think carefully about each decision. Decisions 1 and {{ C.NUM_ROWS }} are each selected with a probability of {{ prob_extreme }};
+       <p>Notice that since each of your decisions can be selected, you should think carefully about each decision. Decisions 1 and {{ C.NUM_ROWS }} are each selected with a probability of {{ prob_extreme }};
+        each of the other decisions is selected with a probability of {{ prob_middle }}.</p>-->
+
+        <p>To understand your preferences over the order better, we now ask you to make the order decision  {{ C.NUM_ROWS }} times, each time with a slightly different bonus. You will fill in a table in which
+        each row is one decision, and in each decision you choose one of the two orders. The only difference
+        between the {{ C.NUM_ROWS }} decisions is which order comes with a bonus payment, and how high this bonus is.</p>
+
+        <p>One of your {{ C.NUM_ROWS }} decisions is then randomly selected and implemented. This means that you watch
+        the videos in the order you chose in that decision, and you receive the corresponding bonus payment.</p>
+
+        <p>Since each of your decisions can be selected, you should think carefully about each one.
+        Decisions 1 and {{ C.NUM_ROWS }} are each selected with a probability of {{ prob_extreme }};
         each of the other decisions is selected with a probability of {{ prob_middle }}.</p>
 
 <h5>Example</h5>

@@ -23,6 +23,7 @@ class C(BaseConstants):
 
     # Video files (mp4)
     CHARITY_VIDEO = "https://www.dropbox.com/s/hoh8zehqd960dmq/mostshocking2day.mp4?raw=1"
+    CHARITY_VIDEO = "https://www.dropbox.com/scl/fi/zzbv5vzhwkhmmeqxmka8x/charity_nohashtag.mp4?rlkey=fjy4wgwiqo8hlz1jtxbk34xji&raw=1"
     ALT_VIDEO = "https://www.dropbox.com/s/iebfy6fzuewtk34/grass.mp4?raw=1"
 
     # Labels shown to participants.
@@ -552,10 +553,6 @@ CHARITY_QUESTIONS = ['controlq1', 'controlq2', 'controlq3']
 ALT_QUESTIONS = ['controlq_presenter', 'controlq_drawing', 'controlq_woman']
 
 
-def video_vars(player: Player, k):
-    if video_number_is_charity(player, k):
-        return dict(video_link=C.CHARITY_VIDEO)
-    return dict(video_link=C.ALT_VIDEO)
 
 
 def failed(player: Player):
@@ -569,13 +566,29 @@ def failed_vars(player: Player):
 
 
 # Alert shown before each video (same template for both)
+def video_vars(player: Player, k):
+    link = C.CHARITY_VIDEO if video_number_is_charity(player, k) else C.ALT_VIDEO
+    return dict(video_link=link, position='first' if k == 1 else 'second')
+
+
 class VideoAlert1(Page):
     template_name = 'mpl_all/VideoAlert.html'
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        return dict(position='first', name=video_name(player, 1),
+                    next_step='After this video, you will make your choice between Option A (you: £5, charity: £0) '
+                              'and Option B (you: £1, charity: £8).')
 
 
 class VideoAlert2(Page):
     template_name = 'mpl_all/VideoAlert.html'
 
+    @staticmethod
+    def vars_for_template(player: Player):
+        return dict(position='second', name=video_name(player, 2),
+                    next_step='Your choice between Option A and Option B has been saved. '
+                              'You will now watch the second video.')
 
 # The videos (same template for both; which file is shown depends on the implemented order)
 class Video1(Page):

@@ -12,7 +12,7 @@
         background: #000;
         z-index: 1;
     }
-    #show {
+    #start, #show {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -22,19 +22,22 @@
         border: none;
         color: white;
         background-color: orange;
-        padding: 20px;
-        font-size: 16px;
+        padding: 20px 30px;
+        font-size: 18px;
     }
 </style>
 {{ endblock }}
 
 {{ block content }}
 
-<!-- No controls: the video cannot be paused, skipped or scrubbed. The NEXT button appears only when it has ended. -->
-<video id="vid" playsinline autoplay disablepictureinpicture>
+<!-- No controls and no autoplay: the video starts with the Start button, cannot be paused or skipped,
+     and the NEXT button appears only when it has ended -->
+<video id="vid" playsinline preload="auto" disablepictureinpicture>
     <source src="{{ video_link }}" type="video/mp4">
 </video>
 
+<!-- type="button" so this button does not submit the page -->
+<button type="button" id="start">Start the {{ position }} video</button>
 <button id="show" style="visibility: hidden;">NEXT</button>
 
 {{ endblock }}
@@ -42,18 +45,26 @@
 {{ block scripts }}
 <script>
     var video = document.getElementById("vid");
-    video.disablePictureInPicture = true;   // no picture-in-picture
+    var start = document.getElementById("start");
+    video.disablePictureInPicture = true;
+
+    // Start the video on click (a click on this page always allows playback with sound)
+    start.addEventListener("click", function () {
+        video.play();
+        start.style.display = "none";
+    });
+
+    // If the video stops before the end (e.g. the tab was switched), a click anywhere resumes it
+    document.addEventListener("click", function (e) {
+        if (e.target.id !== "show" && e.target.id !== "start" && video.paused && !video.ended
+                && start.style.display === "none") {
+            video.play();
+        }
+    });
 
     // Show the NEXT button once the video has ended
     video.addEventListener("ended", function () {
         document.getElementById("show").style.visibility = "visible";
-    });
-
-    // If the browser blocked autoplay, start the video when the participant clicks anywhere on the screen
-    document.addEventListener("click", function (e) {
-        if (e.target.id !== "show" && video.paused && !video.ended) {
-            video.play();
-        }
     });
 </script>
 {{ endblock }}
