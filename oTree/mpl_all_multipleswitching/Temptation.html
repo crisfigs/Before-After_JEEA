@@ -5,16 +5,15 @@
 {{ endblock }}
 
 {{ block content }}
-
-<p>Please answer each question by clicking on the scale. Donating means choosing Option B (you: £1, charity: £8);
+        <p> We now ask how tempted you felt to donate while watching each video. Please answer each question by clicking on the scale. Donating means choosing Option B (you: £1, charity: £8);
 keeping the money means choosing Option A (you: £5, charity: £0).</p>
 
 {{ for v in videos }}
 <div class="card" style="margin-bottom: 1.5rem;">
     <div class="card-body">
+
         <h5>The {{ v.position }} video: <b>{{ v.name }}</b></h5>
         <br>
-
 
 
         <div class="slider-q">
